@@ -8,12 +8,14 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.description}>
-
+        <p>
         < IsaacGarage />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         < KathrynGarage />
-        <br/> <br/>
+        </p>
+        <p>
         <FamilyRoomLight />
+        </p>
       </div>
     </main>
   );
