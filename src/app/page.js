@@ -11,6 +11,7 @@ export default function Home() {
       <div className={styles.description}>
 
         < IsaacGarage />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <KathrynGarage />
       </div>
     </main>
