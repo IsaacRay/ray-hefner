@@ -1,7 +1,6 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-import {IsaacGarage} from "./buttons";
-import {KathrynGarage} from "./buttons";
+import {FamilyRoomLight, IsaacGarage, KathrynGarage} from "./buttons";
 
 
 
@@ -11,8 +10,10 @@ export default function Home() {
       <div className={styles.description}>
 
         < IsaacGarage />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <KathrynGarage />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        < KathrynGarage />
+        <br/> <br/>
+        <FamilyRoomLight />
       </div>
     </main>
   );
