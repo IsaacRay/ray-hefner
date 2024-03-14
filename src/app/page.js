@@ -7,16 +7,16 @@ import {FamilyRoomLight, IsaacGarage, KathrynGarage} from "./buttons";
 export default function Home() {
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
+        <div className={styles.buttons}>
         <p>
         < IsaacGarage />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+       </p>
+       <p>
         < KathrynGarage />
-        </p>
-        <p>
+        </p><p>
         <FamilyRoomLight />
         </p>
-      </div>
+        </div>
     </main>
   );
 }
