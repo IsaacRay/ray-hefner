@@ -16,7 +16,14 @@ export function FamilyRoomLight() {
     return <Button variant="primary" onClick={() => webhook("family_room_light")}>Family Room Light</Button>;
   }
 
-export
+  export function ColtonStar() {
+    return <Button variant="success" onClick={() => webhook("colton_star")}>Colton + </Button>;
+  }
+  export function ColtonDemerit() {
+    return <Button variant="warning" onClick={() => webhook("colton_demerit")}>Colton - </Button>;
+  }
+
+
 
 function garage(whose) {
     axios.get('https://api.ray-hefner.com/'+whose)
