@@ -1,6 +1,6 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-import {ColtonDemerit, ColtonStar, FamilyRoomLight, IsaacGarage, KathrynGarage} from "./buttons";
+import {ColtonDemerit, ColtonStar, FamilyRoomLight, IsaacGarage, KathrynGarage, Logging} from "./buttons";
 
 
 
@@ -22,6 +22,7 @@ export default function Home() {
         <p>
         <ColtonDemerit />
         </p>
+        <p><Logging /></p>
         </div>
     </main>
   );
