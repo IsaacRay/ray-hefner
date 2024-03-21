@@ -39,8 +39,8 @@ export function FamilyRoomLight() {
 function garage(whose) {
     axios.get('https://api.ray-hefner.com/'+whose)
       .then((response) => {
-        console.log(response.data);
-      });
+        alert("Garage button clicked")
+      }).catch((error) => { alert("Garage button clicked") });
   }
 
 
@@ -48,13 +48,14 @@ function garage(whose) {
     if (value){
       axios.get('https://maker.ifttt.com/trigger/'+event+'/with/key/c_0ufFFhyJW6OHzYqgzwP4?value1='+value)
       .then((response) => {
-        console.log(response.data);
-      });
+        console.log("Button clicked");
+
+      }).catch((error) => { alert("Button clicked") });
     } else {
     axios.get('https://maker.ifttt.com/trigger/'+event+'/with/key/c_0ufFFhyJW6OHzYqgzwP4')
       .then((response) => {
-        console.log(response.data);
-      });
+        console.log("Button clicked");
+      }).catch((error) => { alert("Button clicked") });
   }
 }
 
