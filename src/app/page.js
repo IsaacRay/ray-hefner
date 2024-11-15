@@ -1,7 +1,7 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import {ColtonDemerit, ColtonStar, FamilyRoomLight, IsaacGarage, KathrynGarage, Logging} from "./buttons";
-
+import Link from 'next/link';
 
 
 export default function Home() {
@@ -16,13 +16,14 @@ export default function Home() {
         </p><p>
         <FamilyRoomLight />
         </p>
-        <p>
-        <ColtonStar />
-        </p>
-        <p>
-        <ColtonDemerit />
-        </p>
         <p><Logging /></p>
+<p>
+        <Link href="/groceries">
+        <button style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
+          Groceries
+        </button>
+      </Link>
+      </p>
         </div>
     </main>
   );

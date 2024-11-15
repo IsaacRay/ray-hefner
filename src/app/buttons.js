@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Button from 'react-bootstrap/Button';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from "react";
 
@@ -17,13 +18,6 @@ export function FamilyRoomLight() {
     return <Button variant="primary" onClick={() => webhook("family_room_light")}>Family Room Light</Button>;
   }
 
-  export function ColtonStar() {
-    return <Button variant="success" onClick={() => webhook("colton_star")}>Colton + </Button>;
-  }
-  export function ColtonDemerit() {
-    return <Button variant="warning" onClick={() => webhook("colton_demerit")}>Colton - </Button>;
-  }
-
   export function Logging() {
     const [textFieldValue, setTextFieldValue] = useState('');
     return (
@@ -33,6 +27,52 @@ export function FamilyRoomLight() {
     </>
     )
   }
+
+  export function OtherGroceries() {
+    const [textFieldValue, setTextFieldValue] = useState('');
+    return (
+    <>
+    <input type="text" id="other" value={textFieldValue} onChange={(e) => setTextFieldValue(e.target.value)}></input>
+    <Button variant="info" onClick={() => webhook("groceries", `${textFieldValue}`)}>Other</Button>
+    </>
+    )
+  }
+
+  
+
+  export function Strawberries() {
+    return <Button variant="primary" onClick={() => webhook("groceries", "strawberries")}>Strawberries</Button>;
+  }
+
+  export function Yogurts() {
+    return <Button variant="primary" onClick={() => webhook("groceries", "chobani yogurts")}>Yogurts</Button>;
+  }
+
+export function Sausages() { 
+  return <Button variant="primary" onClick={() => webhook("groceries", "sausages")}>Sausages</Button>;
+} 
+
+export function Pepperoni() {
+  return <Button variant="primary" onClick={() => webhook("groceries", "pepperoni")}>Pepperoni</Button>;
+}
+
+export function BabyBell() {
+  return <Button variant="primary" onClick={() => webhook("groceries", "babybell")}>Baby Bell</Button>;
+}
+
+export function StringCheese() {
+  return <Button variant="primary" onClick={() => webhook("groceries", "string cheese")}>String Cheese</Button>;
+}
+
+export function GranolaBars() {
+  return <Button variant="primary" onClick={() => webhook("groceries", "granola bars")}>Granola Bars</Button>;
+}
+
+export function Milk() { 
+  return <Button variant="primary" onClick={() => webhook("groceries", "milk")}>Milk</Button>;
+}
+
+
 
 
 
