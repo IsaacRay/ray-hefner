@@ -14,5 +14,56 @@
   justify-content: space-between;
   align-items: center;
   margin: 2em;
+}
 
+
+.relative-container {
+  position: relative;
+}
+
+.pattern-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  gap: 50px;
+}
+
+.dot {
+  width: 20px;
+  height: 20px;
+  background-color: #bdc3c7;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+  transition: background-color 0.3s;
+}
+
+.dot.active {
+  background-color: #3498db;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+#message {
+  position: absolute;
+  top: 320px;
+  text-align: center;
+  color: #ecf0f1;
+  width: 100%;
+  font-size: 1.2em;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #2c3e50;
 }
