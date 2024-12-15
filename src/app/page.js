@@ -158,7 +158,7 @@ export default function PatternPage() {
       const dx = pos.x - dotPos.x;
       const dy = pos.y - dotPos.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance <= 33) {
+      if (distance <= 75) {
         return { index: parseInt(dotElement.dataset.index) };
       }
     }
