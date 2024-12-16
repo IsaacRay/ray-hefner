@@ -5,9 +5,10 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-throw new Error(process.env.secrets)
-const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key  : process.env.SUPABASE_KEY;
-console.log(supabaseKey)
+const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets['supabase_key'] : process.env.SUPABASE_KEY;
+if (!supabaseKey) {
+  throw new Error(process.env.secrets['supabase_key']);
+}
 
 // Initialize Supabase client
 const supabase = createClient(
