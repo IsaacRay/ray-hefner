@@ -5,7 +5,7 @@ import { secret } from '@aws-amplify/backend';
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
-const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key: process.env.SUPABASE_KEY || "supabase_key";
+const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key: process.env.SUPABASE_KEY;
 
 
 // Initialize Supabase client
