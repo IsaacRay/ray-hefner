@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-
 // Load environment variables from .env file in local development
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
+
+throw new Error(JSON.stringify(process.env.secrets));
+/*
 
 const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key: process.env.SUPABASE_KEY || "supabase_key";
 
@@ -28,10 +30,10 @@ export async function GET(req) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: JSON.stringify(supabaseKey) }), {
+    return new Response(JSON.stringify({ error: JSON.stringify(process.env.secrets) }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 }
-
+*/

@@ -17,20 +17,29 @@ const supabase = createClient(
 // Handle POST requests
 export async function POST(req) {
   try {
-    const { id, completed } = await req.json();
+    const { id, completed, timestamp } = await req.json();
 
-    if (typeof id !== 'number' || typeof completed !== 'boolean') {
+    if (
+      typeof id !== 'number' || 
+      typeof completed !== 'boolean' || 
+      typeof timestamp !== 'string'
+    ) {
       return new Response(
         JSON.stringify({
-          error: 'Invalid input: id must be a number and completed must be a boolean.',
+          error: 'Invalid input: id must be a number, completed must be a boolean, and timestamp must be a string.',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    const updateFields = { completed };
+    if (completed) {
+      updateFields.last_completed = timestamp; // Add the timestamp only when completed is true
+    }
+
     const { data, error } = await supabase
       .from('tasks')
-      .update({ completed })
+      .update(updateFields)
       .eq('id', id);
 
     if (error) throw error;
@@ -49,3 +58,4 @@ export async function POST(req) {
     });
   }
 }
+

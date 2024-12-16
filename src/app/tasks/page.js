@@ -30,12 +30,13 @@ export default function TasksPage() {
   // Handle task completion/uncompletion
   const handleComplete = async (taskId, isChecked) => {
     try {
+      const timestamp = new Date().toISOString();
       const response = await fetch('/api/tasks/complete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: taskId, completed: isChecked }),
+        body: JSON.stringify({ id: taskId, completed: isChecked, timestamp }),
       });
 
       if (!response.ok) throw new Error('Failed to update task status');
