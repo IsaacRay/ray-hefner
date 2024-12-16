@@ -1,32 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-const AWS = require('aws-sdk');
-const secretsManager = new AWS.SecretsManager({ region: 'us-east-1' });
+import { secret } from '@aws-amplify/backend';
 
 // Load environment variables from .env file in local development
 if (process.env.NODE_ENV !== 'production') {
-  console.log("loading env");
   require('dotenv').config();
-  console.log(process.env.SUPABASE_KEY);
 }
 
-async function getSecretValue(secretName) {
-  if (process.env.NODE_ENV !== 'development') {
-    try {
-      const data = await secretsManager.getSecretValue({ SecretId: secretName }).promise();
-      return data.SecretString ? JSON.parse(data.SecretString) : null;
-    } catch (err) {
-      console.error('Error fetching secret:', err);
-      throw err;
-    }
-  } else {
-    // Return local secret value from .env
-    return process.env.SUPABASE_KEY;
-  }
-}
+const supabaseKey = process.env.NODE_ENV !== 'development' ? secret("supabase_key") : process.env.SUPABASE_KEY;
 
-const supabaseKey = await getSecretValue('supabase_key');
-
-console.log(`Supabase Key: ${supabaseKey}`);
 
 // Initialize Supabase client
 const supabase = createClient(
