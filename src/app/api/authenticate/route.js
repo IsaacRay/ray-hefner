@@ -19,13 +19,12 @@ export async function POST(request) {
 
     if (isValid) {
       const response = NextResponse.json({ success: true });
-      // Set the authentication cookie (expires in 1 hour)
+      // Set the authentication cookie (expires in 7 days)
       response.cookies.set('authenticated', 'true', {
-        httpOnly: true, // Not accessible via JavaScript
-        secure: process.env.NODE_ENV === 'production', // Only over HTTPS in production
+        secure: true, // Only over HTTPS in production
         path: '/', // Accessible across all routes
-        maxAge: 60 * 60, // 1 hour in seconds
-        sameSite: 'lax', // CSRF protection
+        maxAge: 7*24*60 * 60, // 7 days in seconds
+        sameSite: 'None', // CSRF protection
       });
       return response;
     } else {

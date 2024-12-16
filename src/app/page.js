@@ -217,6 +217,23 @@ export default function PatternPage() {
     }
     return true;
   };
+  // if browser cookie "authenticated" is set to true, redirect to home page
+  useEffect(() => {
+    const checkAuthenticated = async () => {
+      try {
+        const res = await fetch('/api/check-authenticated');
+        const data = await res.json();
+        if (data.authenticated) {
+          router.push('/home');
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      }
+    };
+
+    checkAuthenticated();
+  }, []);
+
 
   return (
     <div className="container">

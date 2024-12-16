@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.7",
     "axios": "^1.6.7",
     "bootstrap": "^5.3.3",
     "js-cookie": "^3.0.5",

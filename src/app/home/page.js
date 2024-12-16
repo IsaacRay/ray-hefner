@@ -28,6 +28,20 @@ export default function Home() {
           Groceries
         </button>
       </Link>
+</p><p>
+      <Link href="/tasks">
+        <button style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
+          Tasks
+        </button>
+      </Link>
+      </p>
+
+      <p>
+      <Link href="/allowance">
+        <button style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
+          Allowance
+        </button>
+      </Link>
       </p>
         </div>
     </main>
