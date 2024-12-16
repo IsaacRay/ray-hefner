@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const supabaseKey = process.env.NODE_ENV !== 'development' ? secret("supabase_key") : process.env.SUPABASE_KEY;
-console.log(supabaseKey);
+
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -28,7 +28,7 @@ export async function GET(req) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: JSON.stringify(supabaseKey) }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
