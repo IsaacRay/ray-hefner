@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const supabaseKey = process.env.NODE_ENV !== 'development' ? secret("supabase_key") : process.env.SUPABASE_KEY;
-
+console.log(supabaseKey);
 
 // Initialize Supabase client
 const supabase = createClient(
