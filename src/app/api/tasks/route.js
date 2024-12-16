@@ -4,11 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
-
-
+throw new E
 const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets['supabase_key'] : process.env.SUPABASE_KEY;
 if (!supabaseKey) {
-  throw new Error(process.env.secrets['supabase_key']);
+  throw new Error(process.env.secrets);
 }
 
 // Initialize Supabase client
@@ -26,7 +25,7 @@ export async function GET(req) {
       .eq('visible', true);
 
     if (error) throw error;
-
+    console.log(data)
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
