@@ -4,7 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
-const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key || "string" : process.env.SUPABASE_KEY;
+
+throw new Error(process.env.secrets.supabase_key)
+const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key  : process.env.SUPABASE_KEY;
 console.log(supabaseKey)
 
 // Initialize Supabase client
