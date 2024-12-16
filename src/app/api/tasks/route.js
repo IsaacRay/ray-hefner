@@ -1,12 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
-import { secret } from '@aws-amplify/backend';
+import { defineFunction, secret } from '@aws-amplify/backend';
 
+export const supabaseKeys = defineFunction({
+  environment: {
+    SUPABASE_KEY: secret('supabase_key') // this assumes you created a secret named "MY_API_KEY"
+  }
+});
 // Load environment variables from .env file in local development
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-const supabaseKey = process.env.NODE_ENV !== 'development' ? secret("supabase_key") : process.env.SUPABASE_KEY;
+const supabaseKey = process.env.NODE_ENV !== 'development' ? supabaseKeys.env.SUPABASE_KEY : process.env.SUPABASE_KEY;
 
 
 // Initialize Supabase client

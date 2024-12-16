@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { secret } from '@aws-amplify/backend';
+
+// Load environment variables from .env file in local development
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
+const supabaseKey = process.env.NODE_ENV !== 'development' ? secret("supabase_key") : process.env.SUPABASE_KEY;
+
 
 // Initialize Supabase client
 const supabase = createClient(
   "https://lzxiyzhookfqphsmrwup.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eGl5emhvb2tmcXBoc21yd3VwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNDE5MzM0MCwiZXhwIjoyMDQ5NzY5MzQwfQ.N15-srTpoJailPQvOBUGrbeshh39qhxlawrIB6St6j4" 
+  supabaseKey
 );
 
 // Handle POST requests
