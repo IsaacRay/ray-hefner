@@ -5,7 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-throw new Error(process.env.secrets.supabase_key)
+throw new Error(process.env.secrets)
 const supabaseKey = process.env.NODE_ENV !== 'development' ? process.env.secrets.supabase_key  : process.env.SUPABASE_KEY;
 console.log(supabaseKey)
 
