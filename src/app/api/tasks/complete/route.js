@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 const { v4: uuidv4 } = require('uuid');
-
+export const dynamic = 'force-dynamic'
 // Load environment variables from .env file in local development
 
 require('dotenv').config();

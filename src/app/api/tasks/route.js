@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 // Load environment variables from .env file in local development
-
+export const dynamic = 'force-dynamic'
 require('dotenv').config();
 
 
