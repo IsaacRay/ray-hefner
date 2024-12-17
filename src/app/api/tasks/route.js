@@ -21,7 +21,7 @@ export async function GET(req) {
       .from('tasks')
       .select('*')
       .eq('visible', true)
-      .neq("id", uuidv4());
+      .neq("task", uuidv4());
 
     if (error) throw error;
     return new Response(JSON.stringify(data), {

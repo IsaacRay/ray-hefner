@@ -41,7 +41,7 @@ export async function POST(req) {
       .from('tasks')
       .update(updateFields)
       .eq('id', id)
-      .neq("id", uuidv4());
+      .neq("task", uuidv4());
 
     if (error) throw error;
 

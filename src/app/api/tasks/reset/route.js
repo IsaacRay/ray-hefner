@@ -25,7 +25,7 @@ export async function GET(req) {
     const { data: tasks, error: fetchError } = await supabase
       .from('tasks')
       .select('*')
-      .neq("id", uuidv4());
+      .neq("task", uuidv4());
 
     if (fetchError) throw fetchError;
 
