@@ -7,11 +7,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 
-  const supabaseKey = process.env.NODE_ENV !== 'development' ? JSON.parse(process.env.secrets)['supabase_key']  : process.env.SUPABASE_KEY;
-  if (!supabaseKey) {
-    console.log("undefined")
-    throw new Error(JSON.parse(process.env.secrets)['supabase_key']);
-  }
+  const supabaseKey = process.env.SUPABASE_KEY;//process.env.NODE_ENV !== 'development' ? JSON.parse(process.env.secrets)['supabase_key']  : process.env.SUPABASE_KEY;
+
 
 // Initialize Supabase client
 const supabase = createClient(
