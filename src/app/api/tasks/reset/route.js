@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-const { v4: uuidv4 } = require('uuid');
 // Load environment variables from .env file in local development
 
 require('dotenv').config();
@@ -9,7 +8,14 @@ const supabaseKey = process.env.SUPABASE_KEY
 // Initialize Supabase client
 const supabase = createClient(
   "https://lzxiyzhookfqphsmrwup.supabase.co",
-  supabaseKey
+  supabaseKey,
+  {
+    global: {
+      fetch: (url, options = {}) => {
+        return fetch(url, { ...options, cache: 'no-store' });
+      }
+    }
+  }
 );
 
 export async function GET(req) {
@@ -24,8 +30,8 @@ export async function GET(req) {
     // Fetch all tasks
     const { data: tasks, error: fetchError } = await supabase
       .from('tasks')
-      .select('*')
-      .neq("task", uuidv4());
+      .select('*');
+  
 
     if (fetchError) throw fetchError;
 

@@ -11,7 +11,14 @@ const supabaseKey = process.env.SUPABASE_KEY
 // Initialize Supabase client
 const supabase = createClient(
   "https://lzxiyzhookfqphsmrwup.supabase.co",
-  supabaseKey
+  supabaseKey,
+  {
+    global: {
+      fetch: (url, options = {}) => {
+        return fetch(url, { ...options, cache: 'no-store' });
+      }
+    }
+  }
 );
 
 // Handle POST requests
@@ -40,8 +47,7 @@ export async function POST(req) {
     const { data, error } = await supabase
       .from('tasks')
       .update(updateFields)
-      .eq('id', id)
-      .neq("task", uuidv4());
+      .eq('id', id);
 
     if (error) throw error;
 
