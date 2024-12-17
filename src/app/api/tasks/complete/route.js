@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+const { v4: uuidv4 } = require('uuid');
 
 // Load environment variables from .env file in local development
 
