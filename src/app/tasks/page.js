@@ -67,9 +67,7 @@ export default function TasksPage() {
             <tr>
               <th>ID</th>
               <th>Task</th>
-              <th>Created At</th>
               <th>Completed</th>
-              <th>Recurrence</th>
             </tr>
           </thead>
           <tbody>
@@ -77,18 +75,12 @@ export default function TasksPage() {
               <tr key={task.id}>
                 <td>{task.id}</td>
                 <td>{task.task}</td>
-                <td>{new Date(task.created_at).toLocaleString()}</td>
                 <td>
                   <input
                     type="checkbox"
                     checked={task.completed}
                     onChange={(e) => handleComplete(task.id, e.target.checked)}
                   />
-                </td>
-                <td>
-                  {task.recurrence.recurs
-                    ? `Daily: ${task.recurrence.daily}`
-                    : 'No'}
                 </td>
               </tr>
             ))}
