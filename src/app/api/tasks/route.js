@@ -20,7 +20,8 @@ export async function GET(req) {
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('visible', true);
+      .eq('visible', true)
+      .neq("id", uuidv4());
 
     if (error) throw error;
     return new Response(JSON.stringify(data), {

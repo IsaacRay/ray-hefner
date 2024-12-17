@@ -39,7 +39,8 @@ export async function POST(req) {
     const { data, error } = await supabase
       .from('tasks')
       .update(updateFields)
-      .eq('id', id);
+      .eq('id', id)
+      .neq("id", uuidv4());
 
     if (error) throw error;
 
