@@ -42,13 +42,53 @@ export async function GET(req) {
       // Determine if the task should be visible based on its recurrence
       if (recurrence.type === 'daily') {
         shouldBeVisible = true; // Daily tasks are always visible
-      } else if (recurrence.type === 'weekly' && recurrence.days_of_week) {
-        shouldBeVisible = recurrence.days_of_week.includes(getDayName(currentDay));
-      } else if (recurrence.type === 'monthly' && recurrence.day_of_month) {
-        shouldBeVisible = recurrence.day_of_month === currentDate;
-      } else if (recurrence.type === 'custom') {
-        // Add custom rule logic here, if needed
-      }
+      } else if (recurrence.type === 'weekly') {
+        // Weekly logic with optional day_of_week
+        const intervalDays = 7 * (recurrence.interval || 1); // Default to 1 week if interval is missing
+      
+        if (task.last_completed) {
+          const lastCompletedDate = new Date(task.last_completed);
+          const nextValidDate = new Date(lastCompletedDate);
+          nextValidDate.setDate(nextValidDate.getDate() + intervalDays);
+      
+          if (today >= nextValidDate) {
+            shouldBeVisible = true;
+          }
+        } else {
+          // No last_completed: visible starting today
+          shouldBeVisible = true;
+        }
+      
+        // If day_of_week exists, ensure it matches
+        if (recurrence.days_of_week) {
+          shouldBeVisible = shouldBeVisible && recurrence.days_of_week.includes(getDayName(currentDay));
+        }
+      } else if (recurrence.type === 'monthly') {
+        // Monthly logic with optional day_of_month
+        const intervalMonths = recurrence.interval || 1; // Default to 1 month if interval is missing
+      
+        if (task.last_completed) {
+          const lastCompletedDate = new Date(task.last_completed);
+          const nextValidDate = new Date(
+            lastCompletedDate.getFullYear(),
+            lastCompletedDate.getMonth() + intervalMonths,
+            lastCompletedDate.getDate()
+          );
+      
+          if (today >= nextValidDate) {
+            shouldBeVisible = true;
+          }
+        } else {
+          // No last_completed: visible starting today
+          shouldBeVisible = true;
+        }
+      
+        // If day_of_month exists, ensure it matches
+        if (recurrence.day_of_month) {
+          shouldBeVisible = shouldBeVisible && currentDate === recurrence.day_of_month;
+        }
+      } 
+      
 
       // Preserve visibility for incomplete tasks
       if (task.visible && !task.completed) {
