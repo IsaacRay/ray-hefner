@@ -1,4 +1,3 @@
-// pages/index.js
 
 "use client";
 // pages/index.js
