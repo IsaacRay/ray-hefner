@@ -42,6 +42,11 @@ export async function GET(req) {
       // Determine if the task should be visible based on its recurrence
       if (recurrence.type === 'daily') {
         shouldBeVisible = true; // Daily tasks are always visible
+      if (recurrence.type === 'weekday') {
+        // Weekend logic
+        const isWeekend = currentDay === 0 || currentDay === 6; // Sunday or Saturday
+        shouldBeVisible = !isWeekend;
+      }
       } else if (recurrence.type === 'weekly') {
         // Weekly logic with optional day_of_week
         const intervalDays = 7 * (recurrence.interval || 1); // Default to 1 week if interval is missing
