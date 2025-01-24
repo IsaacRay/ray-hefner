@@ -13,7 +13,7 @@ export function middleware(request) {
 
   console.log(`Middleware triggered for path: ${pathname}`);
 
-  if (pathname.startsWith('/api')|| pathname.startsWith('/squares')) {
+  if (pathname === '/' || pathname.startsWith('/api')|| pathname.startsWith('/squares')) {
     console.log('API route detected. Skipping middleware.');
     return NextResponse.next();
   }
@@ -51,5 +51,5 @@ export const config = {
   //    - "squares" at the start,
   //    - an empty string (which would be the root path "/").
   // 3. `.*` - Matches everything else.
-  matcher: '/((?!api|squares|$).*)',
+  matcher: '/((?!api|squares|_next|magic-link|$).*)',
 };
