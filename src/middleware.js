@@ -40,11 +40,16 @@ export function middleware(request) {
   return NextResponse.next();
 }
 
-/**
- * Configuration for the middleware.
- * The matcher specifies which routes the middleware should apply to.
- */
+
+
 export const config = {
-  // This pattern matches all routes except those that begin with /api or /squares
-  matcher: '/((?!api|squares).*)',
+  // Explanation of the regex: 
+  // '/((?!api|squares|$).*)'
+  // 1. `'/` - The path starts with a slash.
+  // 2. `(?!api|squares|$)` - Negative lookahead that disallows:
+  //    - "api" at the start,
+  //    - "squares" at the start,
+  //    - an empty string (which would be the root path "/").
+  // 3. `.*` - Matches everything else.
+  matcher: '/((?!api|squares|$).*)',
 };
