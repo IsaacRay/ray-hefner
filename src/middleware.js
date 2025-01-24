@@ -13,28 +13,28 @@ export function middleware(request) {
 
   console.log(`Middleware triggered for path: ${pathname}`);
 
-  // Define the protected route
-  const protectedRoute = '/home';
-
-  // Check if the request is for the protected route
-  if (pathname === protectedRoute) {
-    // Get the 'authenticated' cookie
-    const authCookie = request.cookies.get('authenticated');
-
-    // Access the value of the cookie
-    const authValue = authCookie?.value;
-    console.log(`Authenticated Cookie Value: ${authValue}`);
-
-    if (authValue !== 'true') {
-      console.log('User is not authenticated. Redirecting to /');
-      // Redirect to the pattern page if not authenticated
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      return NextResponse.redirect(url);
-    } else {
-      console.log('User is authenticated. Access granted to /home');
-    }
+  if (pathname.startsWith('/api')|| pathname.startsWith('/squares')) {
+    console.log('API route detected. Skipping middleware.');
+    return NextResponse.next();
   }
+
+
+  const authCookie = request.cookies.get('authenticated');
+
+  // Access the value of the cookie
+  const authValue = authCookie?.value;
+  console.log(`Authenticated Cookie Value: ${authValue}`);
+
+  if (authValue !== 'true') {
+    console.log('User is not authenticated. Redirecting to /');
+    // Redirect to the pattern page if not authenticated
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  } else {
+    console.log('User is authenticated. Access granted');
+  }
+  
 
   // Allow the request to proceed if authenticated or not a protected route
   return NextResponse.next();
@@ -45,5 +45,6 @@ export function middleware(request) {
  * The matcher specifies which routes the middleware should apply to.
  */
 export const config = {
-  matcher: '/home',
+  // This pattern matches all routes except those that begin with /api or /squares
+  matcher: '/((?!api|squares).*)',
 };
