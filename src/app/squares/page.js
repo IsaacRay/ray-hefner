@@ -198,6 +198,7 @@ export default function SquaresPage() {
               margin: '80px auto 0 auto', // push down from header
               maxWidth: '100%', // fill card width
               overflowX: 'auto', // horizontal scroll if too wide
+              padding: '100px'
             }}
           >
             {/* Top GIF (centered horizontally) */}
@@ -208,7 +209,7 @@ export default function SquaresPage() {
                 position: 'absolute',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                top: '-60px',
+                top: '0px',
                 width: '60px',
                 height: 'auto',
               }}
@@ -222,7 +223,7 @@ export default function SquaresPage() {
                 position: 'absolute',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                left: '-80px',
+                left: '20px',
                 width: '60px',
                 height: 'auto',
               }}
