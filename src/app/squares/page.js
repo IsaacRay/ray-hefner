@@ -202,7 +202,7 @@ export default function SquaresPage() {
           >
             {/* Top GIF (centered horizontally) */}
             <img
-              src="/top.gif"
+              src="/AFC.gif"
               alt="Top GIF"
               style={{
                 position: 'absolute',
@@ -216,7 +216,7 @@ export default function SquaresPage() {
 
             {/* Side GIF (centered vertically on left) */}
             <img
-              src="/side.gif"
+              src="/NFC.gif"
               alt="Side GIF"
               style={{
                 position: 'absolute',
