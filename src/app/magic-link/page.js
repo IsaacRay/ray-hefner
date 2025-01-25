@@ -10,7 +10,6 @@ require('dotenv').config();
 
 
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
-console.log(supabaseKey)
 
  
 // Initialize Supabase client
@@ -40,7 +39,7 @@ export default function SignInPage() {
       email,
       options: {
         // Must match your "Additional Redirect URLs" in Supabase Auth settings
-        emailRedirectTo: `${window.location.origin}/squares`,
+        emailRedirectTo: `https://ray-hefner.com/squares`,
       },
     })
 
