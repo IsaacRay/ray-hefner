@@ -198,9 +198,11 @@ export default function SquaresPage() {
                             cursor: 'pointer',
                             width: '60px',
                             height: '60px',
+                            backgroundColor: occupant ? '#4181e0' : '#41e06c',
+                            color: '#fff', // Make text white for contrast
                           }}
                         >
-                          {occupant || 'Click'}
+                          {occupant || 'Unclaimed!'}
                         </td>
                       )
                     })}
