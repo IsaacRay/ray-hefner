@@ -11,7 +11,8 @@ require('dotenv').config();
 
 
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
-const env = process.env.ENVIRONMENT || 'production'
+const env = process.env.NEXT_PUBLIC_ENVIRONMENT || 'production'
+console.log(env)
 
  
 // Initialize Supabase client

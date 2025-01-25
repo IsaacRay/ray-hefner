@@ -226,7 +226,8 @@ export default function SquaresPage() {
                             cursor: 'pointer',
                             width: '60px',
                             height: '60px',
-                            backgroundColor: occupant ? '#4181e0' : '#41e06c',
+                            border: occupant === session.user.email?'5px solid yellow':'1px solid #ccc',
+                            backgroundColor: occupant ? occupant === session.user.email ?'#4181e0':'#eb5468' : '#41e06c',
                             color: '#fff',
                           }}
                         >
