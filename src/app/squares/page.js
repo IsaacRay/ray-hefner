@@ -175,8 +175,21 @@ export default function SquaresPage() {
       <div className="card shadow">
         <div className="card-body">
           <h1 className="card-title mb-3 text-center">Welcome!</h1>
+          <p className="card-text text-center">AFC is on the top, NFC is on the side. Squares are $2 each, you may select as many as you'd like.<br/>
+            Payouts are 25% for first quarter, 25% for second quarter, and 50% for final score. Good luck!
+
+<br/>
+<br/>
+        https://venmo.com/u/Isaac-Ray-2
+<br/>
+<br/>
+            https://www.paypal.me/IsaacRay
+            
+          </p>
+          <br/><br/>
           <p className="card-text text-center">
             You are signed in as <strong>{session?.user?.email}</strong>
+          
           </p>
           <div className="text-center mb-4">
             <button
