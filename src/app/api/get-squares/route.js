@@ -60,6 +60,15 @@ export async function GET() {
     // 2) Fetch "square_sides" data to build axisX and axisY
     // We assume columns: axis (1 or 2), position (0..9), value (string/number)
  // Separate data for axis=1 (X axis) vs. axis=2 (Y axis)
+
+ const { data: sidesData, error: sidesError } = await supabase
+ .from('square_sides')
+ .select('axis, position, value')
+ .order('position', { ascending: true }) // ensures 0..9 order
+
+if (sidesError) {
+ throw sidesError
+}
 const axisXRows = (sidesData || []).filter((row) => row.axis === 1)
 const axisYRows = (sidesData || []).filter((row) => row.axis === 2)
 

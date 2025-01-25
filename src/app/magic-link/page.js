@@ -36,8 +36,9 @@ export default function SignInPage() {
     event.preventDefault()
     setStatusMessage('')
     setIsLoading(true)
-    isLocal = env === 'local';
-    redirecturl= isLocal ? 'http://localhost:3000/squares' : 'https://ray-hefner.com/squares';
+    const isLocal = env === 'local';
+    const redirecturl= isLocal ? 'http://localhost:3000/squares' : 'https://ray-hefner.com/squares';
+    console.log(redirecturl)
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
