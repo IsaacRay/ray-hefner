@@ -39,7 +39,7 @@ export default function SignInPage() {
       email,
       options: {
         // Must match your "Additional Redirect URLs" in Supabase Auth settings
-        emailRedirectTo: `https://ray-hefner.com/squares`,
+        emailRedirectTo: `${window.location.origin}/squares`,
       },
     })
 

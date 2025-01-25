@@ -33,9 +33,11 @@ export default function SquaresPage() {
   const [squares, setSquares] = useState(Array(100).fill(null))
   const [loadingSquares, setLoadingSquares] = useState(false)
 
-  // We'll store how many squares each user has selected
-  // (e.g. { 'alice@example.com': 5, 'bob@example.com': 3, ... })
   const [userCounts, setUserCounts] = useState({})
+
+  // New states for axis labels
+  const [axisX, setAxisX] = useState([]) // e.g. [0,1,2,...,9]
+  const [axisY, setAxisY] = useState([]) // e.g. [0,1,2,...,9]
 
   // 1) Check for a valid session on mount
   useEffect(() => {
@@ -61,15 +63,22 @@ export default function SquaresPage() {
       const response = await fetch('/api/get-squares')
       const data = await response.json()
 
-      // Suppose data has a shape like:
-      // { squares: [ { squareId: 12, userEmail: 'someone@example.com'}, ... ] }
+      // data might look like:
+      // {
+      //   squares: [
+      //     { squareId: 12, userEmail: 'someone@example.com' },
+      //     ...
+      //   ],
+      //   axisX: [0,1,2,3,4,5,6,7,8,9],
+      //   axisY: [0,1,2,3,4,5,6,7,8,9]
+      // }
+
       const newSquares = Array(100).fill(null)
       for (const { squareId, userEmail } of data.squares || []) {
         if (squareId >= 0 && squareId < 100) {
           newSquares[squareId] = userEmail
         }
       }
-
       setSquares(newSquares)
 
       // Calculate user counts (how many squares each user has)
@@ -80,6 +89,10 @@ export default function SquaresPage() {
         }
       }
       setUserCounts(counts)
+
+      // Store axis labels if provided
+      setAxisX(data.axisX || [])
+      setAxisY(data.axisY || [])
     } catch (err) {
       console.error('Error fetching squares:', err)
     } finally {
@@ -178,15 +191,30 @@ export default function SquaresPage() {
           </div>
           <hr />
 
-          {/* 10x10 Grid */}
           <h4 className="mb-3 text-center">Select a Square</h4>
+
           <div className="table-responsive">
             <table className="table table-bordered text-center align-middle">
+              {/* If axisX is populated, render a header row */}
+              {axisX.length > 0 && (
+                <thead>
+                  <tr>
+                    {/* Empty corner if axisY is also shown */}
+                    {axisY.length > 0 && <th></th>}
+                    {axisX.map((val, i) => (
+                      <th key={i}>{val}</th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
+
               <tbody>
-                {/* Build 10 rows */}
                 {Array.from({ length: 10 }).map((_, rowIndex) => (
                   <tr key={rowIndex}>
-                    {/* Each row has 10 columns */}
+                    {/* If axisY is populated, show its label in the first cell */}
+                    {axisY.length > 0 && <th>{axisY[rowIndex]}</th>}
+
+                    {/* Each row has 10 columns of squares */}
                     {Array.from({ length: 10 }).map((_, colIndex) => {
                       const squareId = rowIndex * 10 + colIndex
                       const occupant = squares[squareId]
@@ -199,7 +227,7 @@ export default function SquaresPage() {
                             width: '60px',
                             height: '60px',
                             backgroundColor: occupant ? '#4181e0' : '#41e06c',
-                            color: '#fff', // Make text white for contrast
+                            color: '#fff',
                           }}
                         >
                           {occupant || 'Unclaimed!'}
@@ -212,7 +240,6 @@ export default function SquaresPage() {
             </table>
           </div>
 
-          {/* Show how many squares each user has selected */}
           <hr />
           <h4 className="mt-4">User Selection Counts</h4>
           {Object.keys(userCounts).length === 0 ? (
