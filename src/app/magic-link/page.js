@@ -1,50 +1,72 @@
-// app/sign-in/page.jsx
-'use client' // We need client-side rendering for form submission & Supabase calls
+/// app/sign-in/page.jsx
+'use client'
 
-import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation' // For client-side navigation
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { redirect } from 'next/dist/server/api-utils';
-// Load environment variables from .env file in local development
-export const dynamic = 'force-dynamic'
-require('dotenv').config();
 
+export const dynamic = 'force-dynamic'
+
+// Load environment variables from .env file in local development
+require('dotenv').config()
 
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
 const env = process.env.NEXT_PUBLIC_ENVIRONMENT || 'production'
-console.log(env)
 
- 
 // Initialize Supabase client
 const supabase = createClient(
-  "https://lzxiyzhookfqphsmrwup.supabase.co",
+  'https://lzxiyzhookfqphsmrwup.supabase.co',
   supabaseKey,
   {
     global: {
       fetch: (url, options = {}) => {
-        return fetch(url, { ...options, cache: 'no-store' });
-      }
-    }
+        return fetch(url, { ...options, cache: 'no-store' })
+      },
+    },
   }
-);
+)
 
 export default function SignInPage() {
+  const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
 
+  // 1. Check if session exists on mount
+  useEffect(() => {
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        // If session exists, redirect to /squares
+        router.push('/squares')
+      } else {
+        // Otherwise, show the sign-in form
+        setCheckingSession(false)
+      }
+    }
+    checkSession()
+  }, [router])
+
+  // 2. Handle sign-in
   const handleSignIn = async (event) => {
     event.preventDefault()
     setStatusMessage('')
     setIsLoading(true)
-    const isLocal = env === 'local';
-    const redirecturl= isLocal ? 'http://localhost:3000/squares' : 'https://ray-hefner.com/squares';
-    console.log(redirecturl)
+
+    const isLocal = env === 'local'
+    const redirectUrl = isLocal
+      ? 'http://localhost:3000/squares'
+      : 'https://ray-hefner.com/squares'
+    console.log(redirectUrl)
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         // Must match your "Additional Redirect URLs" in Supabase Auth settings
-        emailRedirectTo: redirecturl,
+        emailRedirectTo: redirectUrl,
       },
     })
 
@@ -57,6 +79,18 @@ export default function SignInPage() {
     }
   }
 
+  // 3. While we're checking for an existing session, show a small loader (optional)
+  if (checkingSession) {
+    return (
+      <main className="container-fluid d-flex flex-column justify-content-center align-items-center min-vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </main>
+    )
+  }
+
+  // 4. If no session, render the sign-in form
   return (
     <main className="container-fluid bg-light min-vh-100 d-flex flex-column justify-content-center align-items-center">
       <div className="row w-100 px-2">
