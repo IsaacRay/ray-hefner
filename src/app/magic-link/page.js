@@ -4,12 +4,14 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js';
 import 'bootstrap/dist/css/bootstrap.min.css'
+import { redirect } from 'next/dist/server/api-utils';
 // Load environment variables from .env file in local development
 export const dynamic = 'force-dynamic'
 require('dotenv').config();
 
 
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
+const env = process.env.ENVIRONMENT || 'production'
 
  
 // Initialize Supabase client
@@ -34,12 +36,13 @@ export default function SignInPage() {
     event.preventDefault()
     setStatusMessage('')
     setIsLoading(true)
-
+    isLocal = env === 'local';
+    redirecturl= isLocal ? 'http://localhost:3000/squares' : 'https://ray-hefner.com/squares';
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         // Must match your "Additional Redirect URLs" in Supabase Auth settings
-        emailRedirectTo: `${window.location.origin}/squares`,
+        emailRedirectTo: redirecturl,
       },
     })
 

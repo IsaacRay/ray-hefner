@@ -59,23 +59,27 @@ export async function GET() {
 
     // 2) Fetch "square_sides" data to build axisX and axisY
     // We assume columns: axis (1 or 2), position (0..9), value (string/number)
-    const { data: sidesData, error: sidesError } = await supabase
-      .from('square_sides')
-      .select('axis, position, value')
-      .order('position', { ascending: true }) // ensures 0..9 order
+ // Separate data for axis=1 (X axis) vs. axis=2 (Y axis)
+const axisXRows = (sidesData || []).filter((row) => row.axis === 1)
+const axisYRows = (sidesData || []).filter((row) => row.axis === 2)
 
-    if (sidesError) {
-      throw sidesError
+// Helper function to build a 10-element array
+// for positions 0..9, filling missing positions with ""
+function buildAxisArray(rows) {
+  const axisArray = new Array(10).fill('')
+
+  // rows are sorted by position (0..9), so just place row.value into the correct index
+  for (const row of rows) {
+    if (row.position >= 0 && row.position < 10) {
+      axisArray[row.position] = row.value ?? ''
     }
+  }
+  return axisArray
+}
 
-    // Separate data for axis=1 (X axis) vs. axis=2 (Y axis)
-    const axisXRows = (sidesData || []).filter((row) => row.axis === 1)
-    const axisYRows = (sidesData || []).filter((row) => row.axis === 2)
+const axisX = buildAxisArray(axisXRows)
+const axisY = buildAxisArray(axisYRows)
 
-    // Map to just the "value" field, in ascending position order
-    // Because of .order('position'), axisXRows and axisYRows are already sorted.
-    const axisX = axisXRows.map((row) => row.value)
-    const axisY = axisYRows.map((row) => row.value)
 
     // 3) Return JSON with squares, axisX, axisY
     return NextResponse.json({
