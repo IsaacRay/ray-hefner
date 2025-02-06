@@ -84,6 +84,8 @@ export default function SquaresPage() {
     }
   }
 
+  
+
   const handleSquareClick = async (squareId) => {
     try {
       const { user } = session
@@ -297,6 +299,7 @@ export default function SquaresPage() {
                     <td>{count}</td>
                   </tr>
                 ))}
+                <tr><td>TOTAL</td><td>{Object.values(userCounts).reduce((sum, count) => sum + count, 0)}</td></tr>
               </tbody>
             </table>
           )}
