@@ -38,6 +38,22 @@ export async function POST(request) {
           { status: 400 }
         )
       }
+
+      // Check the total count of records in the squares table
+      const { count, error: countError } = await supabase
+        .from('squares')
+        .select('*', { count: 'exact', head: true })
+
+      if (countError) {
+        throw countError
+      }
+
+      if (count >= 100) {
+        return NextResponse.json(
+          { error: 'Squares are locked. No more selections allowed.' },
+          { status: 403 }
+        )
+      }
   
       // 1) Check if there's already a row for this square
       const { data: existingRow, error: checkError } = await supabase
