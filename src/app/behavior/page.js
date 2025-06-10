@@ -81,11 +81,12 @@ export default function BehaviorPage() {
     );
   };
 
-  // Save daily total
+  // Save daily total for today only
   const saveDailyTotal = async () => {
     if (!selectedChild) return;
 
     const checkedCount = behaviors.filter(b => b.checked).length;
+    const todayDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
     try {
       const response = await fetch('/api/totals', {
@@ -95,25 +96,39 @@ export default function BehaviorPage() {
         },
         body: JSON.stringify({
           child: selectedChild,
-          date: today,
+          date: todayDate,
           total: checkedCount
         }),
       });
 
       if (!response.ok) throw new Error('Failed to save daily total');
 
-      // Update local state
+      // Update local state for today
+      const todayString = new Date().toDateString();
       setDailyTotals(prev => ({
         ...prev,
-        [today]: checkedCount
+        [todayString]: checkedCount
       }));
 
-      // Recalculate weekly total
-      const newWeeklyTotal = Object.values({ ...dailyTotals, [today]: checkedCount })
-        .reduce((sum, total) => sum + total, 0);
-      setWeeklyTotal(newWeeklyTotal);
+      // Recalculate weekly total from Monday-based week
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const thisMonday = new Date(now);
+      thisMonday.setDate(now.getDate() + mondayOffset);
+      thisMonday.setHours(0, 0, 0, 0);
 
-      alert('Daily total saved!');
+      const updatedTotals = { ...dailyTotals, [todayString]: checkedCount };
+      const weekTotal = Object.entries(updatedTotals)
+        .filter(([dateString]) => {
+          const date = new Date(dateString);
+          return date >= thisMonday;
+        })
+        .reduce((sum, [, total]) => sum + total, 0);
+
+      setWeeklyTotal(weekTotal);
+
+      alert('Today\'s total saved!');
     } catch (error) {
       console.error('Error saving daily total:', error);
       alert('Failed to save daily total');
