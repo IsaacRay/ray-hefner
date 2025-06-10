@@ -29,9 +29,9 @@ export default function Home() {
         </button>
       </Link>
 </p><p>
-      <Link href="/tasks">
+      <Link href="/behavior">
         <button style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
-          Tasks
+          Behavior
         </button>
       </Link>
       </p>
