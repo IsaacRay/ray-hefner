@@ -20,6 +20,22 @@ export default function PatternPage() {
   const correctPattern = [3,6,7,8]; // Example pattern
 
   useEffect(() => {
+    const checkAuthenticated = async () => {
+      try {
+        const res = await fetch('/api/check-authenticated');
+        const data = await res.json();
+        if (data.authenticated) {
+          router.push('/home');
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      }
+    };
+
+    checkAuthenticated();
+  }, []);
+
+  useEffect(() => {
     const initializeDots = () => {
       const tempDots = [];
       for (let i = 0; i < 9; i++) {
@@ -218,21 +234,7 @@ export default function PatternPage() {
     return true;
   };
   // if browser cookie "authenticated" is set to true, redirect to home page
-  useEffect(() => {
-    const checkAuthenticated = async () => {
-      try {
-        const res = await fetch('/api/check-authenticated');
-        const data = await res.json();
-        if (data.authenticated) {
-          router.push('/home');
-        }
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-      }
-    };
 
-    checkAuthenticated();
-  }, []);
 
 
   return (
