@@ -8,7 +8,7 @@ export default function BehaviorPage() {
   const [dailyTotals, setDailyTotals] = useState({});
   const [weeklyTotal, setWeeklyTotal] = useState(0);
   const [selectedChild, setSelectedChild] = useState('');
-  const [children] = useState(['Colton', 'Isaac']); // Add your kids' names here
+  const [children] = useState(['Ella', 'Colton']);
 
   const today = new Date().toDateString();
 
@@ -18,8 +18,8 @@ export default function BehaviorPage() {
 
     async function fetchData() {
       try {
-        // Fetch behaviors
-        const behaviorsResponse = await fetch('/api/behaviors');
+        // Fetch behaviors for selected child
+        const behaviorsResponse = await fetch(`/api/behaviors?child=${selectedChild}`);
         if (!behaviorsResponse.ok) throw new Error('Failed to fetch behaviors');
         const behaviorsData = await behaviorsResponse.json();
 
@@ -31,17 +31,30 @@ export default function BehaviorPage() {
 
         setBehaviors(initializedBehaviors);
 
-        // Fetch weekly totals for selected child
+        // Fetch weekly totals for selected child (Monday-based week)
         const totalsResponse = await fetch(`/api/totals?child=${selectedChild}`);
         if (totalsResponse.ok) {
           const totalsData = await totalsResponse.json();
           const totalsMap = {};
           let weekTotal = 0;
 
+          // Get current Monday-based week
+          const now = new Date();
+          const dayOfWeek = now.getDay();
+          const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Sunday = 0, so offset -6, else 1 - dayOfWeek
+          const thisMonday = new Date(now);
+          thisMonday.setDate(now.getDate() + mondayOffset);
+          thisMonday.setHours(0, 0, 0, 0);
+
           totalsData.forEach(total => {
             const date = new Date(total.date).toDateString();
+            const totalDate = new Date(total.date);
             totalsMap[date] = total.total;
-            weekTotal += total.total;
+            
+            // Only count totals from this Monday-based week
+            if (totalDate >= thisMonday) {
+              weekTotal += total.total;
+            }
           });
 
           setDailyTotals(totalsMap);
@@ -117,12 +130,18 @@ export default function BehaviorPage() {
     );
   };
 
-  // Get last 7 days for display
+  // Get last 7 days for display (Monday-based)
   const getLast7Days = () => {
     const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Sunday = 0, so offset -6, else 1 - dayOfWeek
+    const thisMonday = new Date(now);
+    thisMonday.setDate(now.getDate() + mondayOffset);
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(thisMonday);
+      date.setDate(thisMonday.getDate() + i);
       days.push(date);
     }
     return days;
