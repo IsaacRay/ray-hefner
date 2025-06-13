@@ -44,11 +44,11 @@ export default function SignInPage() {
         const urlParams = new URLSearchParams(window.location.search)
         const redirect = urlParams.get('redirect')
         
-        if (redirect === 'madison') {
-          router.push('/madison')
+        if (redirect === 'squares') {
+          router.push('/squares')
         } else {
           // Default redirect to /squares
-          router.push('/squares')
+          router.push('/madison')
         }
       } else {
         // Otherwise, show the sign-in form
