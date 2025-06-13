@@ -22,25 +22,43 @@ export async function GET(req) {
 
       if (error) throw error;
 
+      // First, determine the maximum items per category for scoring
+      const maxRanksByType = {};
+      data.forEach(vote => {
+        if (!maxRanksByType[vote.activity_type] || vote.rank_position > maxRanksByType[vote.activity_type]) {
+          maxRanksByType[vote.activity_type] = vote.rank_position;
+        }
+      });
+
       const activityScores = {};
       
-      // Calculate weighted scores (1st choice = 5 points, 2nd = 4, etc.)
+      // Calculate weighted scores (1st choice = max_rank points, 2nd = max_rank-1, etc.)
       data.forEach(vote => {
         if (!activityScores[vote.activity_name]) {
           activityScores[vote.activity_name] = {
             name: vote.activity_name,
             type: vote.activity_type,
             score: 0,
-            votes_by_rank: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+            votes_by_rank: {},
+            total_votes: 0
           };
         }
         
-        const points = Math.max(0, 6 - vote.rank_position); // 5 points for 1st, 4 for 2nd, etc.
+        const maxRank = maxRanksByType[vote.activity_type] || vote.rank_position;
+        const points = Math.max(0, maxRank + 1 - vote.rank_position); // Dynamic scoring
         activityScores[vote.activity_name].score += points;
+        
+        if (!activityScores[vote.activity_name].votes_by_rank[vote.rank_position]) {
+          activityScores[vote.activity_name].votes_by_rank[vote.rank_position] = 0;
+        }
         activityScores[vote.activity_name].votes_by_rank[vote.rank_position]++;
+        activityScores[vote.activity_name].total_votes++;
       });
 
-      return new Response(JSON.stringify(Object.values(activityScores)), {
+      return new Response(JSON.stringify({
+        results: Object.values(activityScores),
+        maxRanksByType
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });

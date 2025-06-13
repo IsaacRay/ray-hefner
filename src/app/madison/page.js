@@ -75,7 +75,7 @@ export default function MadisonVoting() {
       const response = await fetch('/api/madison-votes?summary=true');
       if (response.ok) {
         const data = await response.json();
-        setResults(data.sort((a, b) => b.score - a.score));
+        setResults(data.results.sort((a, b) => b.score - a.score));
       }
     } catch (error) {
       console.error('Error loading results:', error);
@@ -98,6 +98,15 @@ export default function MadisonVoting() {
     return activities
       .filter(activity => activity.type === type)
       .filter(activity => !rankedActivityNames.includes(activity.name));
+  };
+
+  const getActivitiesCountByType = (type) => {
+    return activities.filter(activity => activity.type === type).length;
+  };
+
+  const getRankingSlots = (type) => {
+    const count = getActivitiesCountByType(type);
+    return Array.from({ length: count }, (_, i) => i + 1);
   };
 
   const handleDragStart = (e, activity, source) => {
@@ -254,7 +263,7 @@ export default function MadisonVoting() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1>Madison Trip - Ranked Choice Voting</h1>
-          <p className="text-muted">Welcome, {session.user.email}! Drag activities to rank your preferences (1st to 5th choice).</p>
+          <p className="text-muted">Welcome, {session.user.email}! Drag activities to rank ALL your preferences (1st choice to last choice).</p>
         </div>
         <div>
           <button 
@@ -297,11 +306,8 @@ export default function MadisonVoting() {
                     <th>Activity</th>
                     <th>Type</th>
                     <th>Score</th>
-                    <th>1st</th>
-                    <th>2nd</th>
-                    <th>3rd</th>
-                    <th>4th</th>
-                    <th>5th</th>
+                    <th>Total Votes</th>
+                    <th>Top 3 Breakdown</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,18 +323,21 @@ export default function MadisonVoting() {
                         </span>
                       </td>
                       <td><strong>{result.score}</strong></td>
-                      <td>{result.votes_by_rank[1]}</td>
-                      <td>{result.votes_by_rank[2]}</td>
-                      <td>{result.votes_by_rank[3]}</td>
-                      <td>{result.votes_by_rank[4]}</td>
-                      <td>{result.votes_by_rank[5]}</td>
+                      <td>{result.total_votes}</td>
+                      <td>
+                        <small>
+                          1st: {result.votes_by_rank[1] || 0}, 
+                          2nd: {result.votes_by_rank[2] || 0}, 
+                          3rd: {result.votes_by_rank[3] || 0}
+                        </small>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <small className="text-muted">
-              Scoring: 1st choice = 5 points, 2nd = 4 points, 3rd = 3 points, 4th = 2 points, 5th = 1 point
+              Scoring: 1st choice = highest points, decreasing by 1 point per rank (dynamic based on category size)
             </small>
           </div>
         </div>
@@ -347,41 +356,47 @@ export default function MadisonVoting() {
               <div className="row">
                 {/* Ranking Slots */}
                 <div className="col-md-8">
-                  <h6>Your Rankings:</h6>
-                  <div className="row">
-                    {[1, 2, 3, 4, 5].map(rank => (
-                      <div key={rank} className="col-md-12 mb-2">
-                        <div 
-                          className="border rounded p-3 min-height-60 d-flex align-items-center"
-                          style={{ 
-                            minHeight: '60px',
-                            backgroundColor: typeRankings[rank] ? '#e8f5e8' : '#f8f9fa',
-                            borderStyle: 'dashed',
-                            borderColor: typeRankings[rank] ? '#28a745' : '#dee2e6'
-                          }}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, type, rank)}
-                        >
-                          {typeRankings[rank] ? (
-                            <div 
-                              className="d-flex justify-content-between align-items-center w-100"
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, typeRankings[rank], { type: 'ranked', rank })}
-                              style={{ cursor: 'grab' }}
-                            >
-                              <span>
-                                <strong>{rank}. {typeRankings[rank].activity_name}</strong>
+                  <h6>Your Rankings: ({Object.keys(typeRankings).length} of {getActivitiesCountByType(type)} ranked)</h6>
+                  <div 
+                    className="border rounded p-3"
+                    style={{ maxHeight: '400px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}
+                  >
+                    <div className="row g-2">
+                      {getRankingSlots(type).map(rank => (
+                        <div key={rank} className="col-md-6 col-lg-4">
+                          <div 
+                            className="border rounded p-2 d-flex align-items-center"
+                            style={{ 
+                              minHeight: '45px',
+                              backgroundColor: typeRankings[rank] ? '#e8f5e8' : '#ffffff',
+                              borderStyle: 'dashed',
+                              borderColor: typeRankings[rank] ? '#28a745' : '#dee2e6',
+                              fontSize: '0.875rem'
+                            }}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, type, rank)}
+                          >
+                            {typeRankings[rank] ? (
+                              <div 
+                                className="d-flex justify-content-between align-items-center w-100"
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, typeRankings[rank], { type: 'ranked', rank })}
+                                style={{ cursor: 'grab' }}
+                              >
+                                <span>
+                                  <strong>{rank}.</strong> {typeRankings[rank].activity_name}
+                                </span>
+                                <small className="text-muted">↕</small>
+                              </div>
+                            ) : (
+                              <span className="text-muted small">
+                                {rank}. Drop here
                               </span>
-                              <small className="text-muted">Drag to reorder</small>
-                            </div>
-                          ) : (
-                            <span className="text-muted">
-                              {rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`} Choice - Drop here
-                            </span>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -426,7 +441,8 @@ export default function MadisonVoting() {
           <li>Drag activities from the "Available" section to your ranking slots</li>
           <li>Drag between ranking slots to reorder</li>
           <li>Drag back to "Available" to remove from rankings</li>
-          <li>You can rank up to 5 activities per category</li>
+          <li>You can rank ALL activities in each category (from 1st choice to last choice)</li>
+          <li>The ranking area scrolls - you don't have to rank everything if you don't want to</li>
           <li>Click "Save Rankings" when you're satisfied with your choices</li>
         </ul>
       </div>
