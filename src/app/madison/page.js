@@ -25,11 +25,18 @@ export default function MadisonVoting() {
   const [alert, setAlert] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState([]);
-  const [draggedItem, setDraggedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     checkAuthentication();
+    detectMobile();
   }, []);
+
+  const detectMobile = () => {
+    setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+  };
 
   const checkAuthentication = async () => {
     try {
@@ -45,28 +52,93 @@ export default function MadisonVoting() {
     }
   };
 
+  const initializeRankings = () => {
+    const initialRankings = {};
+    const groupedActivities = activities.reduce((groups, activity) => {
+      if (!groups[activity.type]) {
+        groups[activity.type] = [];
+      }
+      groups[activity.type].push(activity);
+      return groups;
+    }, {});
+
+    // Initialize each type with default order
+    Object.entries(groupedActivities).forEach(([type, typeActivities]) => {
+      initialRankings[type] = typeActivities.map((activity, index) => ({
+        ...activity,
+        rank_position: index + 1
+      }));
+    });
+
+    setRankings(initialRankings);
+  };
+
   const loadUserVotes = async (email) => {
     try {
       const response = await fetch(`/api/madison-votes?email=${email}`);
       if (response.ok) {
         const votes = await response.json();
+        
+        if (votes.length === 0) {
+          // No saved votes, initialize with default order
+          initializeRankings();
+          return;
+        }
+
         const userRankings = {};
         
         // Group votes by type and organize by rank
         votes.forEach(vote => {
           if (!userRankings[vote.activity_type]) {
-            userRankings[vote.activity_type] = {};
+            userRankings[vote.activity_type] = [];
           }
-          userRankings[vote.activity_type][vote.rank_position] = {
-            activity_name: vote.activity_name,
-            activity_type: vote.activity_type
-          };
+          userRankings[vote.activity_type].push({
+            name: vote.activity_name,
+            type: vote.activity_type,
+            rank_position: vote.rank_position
+          });
+        });
+
+        // Sort by rank position and fill in any missing activities
+        const groupedActivities = activities.reduce((groups, activity) => {
+          if (!groups[activity.type]) {
+            groups[activity.type] = [];
+          }
+          groups[activity.type].push(activity);
+          return groups;
+        }, {});
+
+        Object.entries(groupedActivities).forEach(([type, typeActivities]) => {
+          if (userRankings[type]) {
+            // Sort saved rankings
+            userRankings[type].sort((a, b) => a.rank_position - b.rank_position);
+            
+            // Add any missing activities to the end
+            const savedNames = userRankings[type].map(item => item.name);
+            const missingActivities = typeActivities.filter(activity => 
+              !savedNames.includes(activity.name)
+            );
+            
+            missingActivities.forEach((activity, index) => {
+              userRankings[type].push({
+                ...activity,
+                rank_position: userRankings[type].length + index + 1
+              });
+            });
+          } else {
+            // No saved rankings for this type, use default order
+            userRankings[type] = typeActivities.map((activity, index) => ({
+              ...activity,
+              rank_position: index + 1
+            }));
+          }
         });
         
         setRankings(userRankings);
       }
     } catch (error) {
       console.error('Error loading votes:', error);
+      initializeRankings();
     }
   };
 
@@ -88,85 +160,71 @@ export default function MadisonVoting() {
     setTimeout(() => setAlert(null), 5000);
   };
 
-  const getRankingForType = (type) => {
-    return rankings[type] || {};
+  // Mobile tap-to-swap functionality
+  const handleItemTap = (type, index) => {
+    if (!isMobile) return;
+
+    if (selectedItem && selectedItem.type === type) {
+      // Swap the items
+      const newRankings = { ...rankings };
+      const typeRankings = [...newRankings[type]];
+      
+      // Swap items
+      const temp = typeRankings[selectedItem.index];
+      typeRankings[selectedItem.index] = typeRankings[index];
+      typeRankings[index] = temp;
+      
+      // Update rank positions
+      typeRankings.forEach((item, idx) => {
+        item.rank_position = idx + 1;
+      });
+      
+      newRankings[type] = typeRankings;
+      setRankings(newRankings);
+      setSelectedItem(null);
+    } else {
+      // Select this item
+      setSelectedItem({ type, index });
+    }
   };
 
-  const getAvailableActivities = (type) => {
-    const typeRankings = getRankingForType(type);
-    const rankedActivityNames = Object.values(typeRankings).map(item => item.activity_name);
-    return activities
-      .filter(activity => activity.type === type)
-      .filter(activity => !rankedActivityNames.includes(activity.name));
-  };
-
-  const getActivitiesCountByType = (type) => {
-    return activities.filter(activity => activity.type === type).length;
-  };
-
-  const getRankingSlots = (type) => {
-    const count = getActivitiesCountByType(type);
-    return Array.from({ length: count }, (_, i) => i + 1);
-  };
-
-  const handleDragStart = (e, activity, source) => {
-    setDraggedItem({ activity, source });
+  // Desktop drag and drop
+  const handleDragStart = (e, type, index) => {
+    if (isMobile) return;
+    setDraggedIndex({ type, index });
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e) => {
+    if (isMobile) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e, targetType, targetRank) => {
+  const handleDrop = (e, type, dropIndex) => {
+    if (isMobile) return;
     e.preventDefault();
     
-    if (!draggedItem) return;
-    
-    const { activity, source } = draggedItem;
-    
-    // Can only drop activities of the same type
-    if (activity.type !== targetType) {
-      setDraggedItem(null);
+    if (!draggedIndex || draggedIndex.type !== type) {
+      setDraggedIndex(null);
       return;
     }
 
     const newRankings = { ...rankings };
+    const typeRankings = [...newRankings[type]];
     
-    // Initialize type if it doesn't exist
-    if (!newRankings[targetType]) {
-      newRankings[targetType] = {};
-    }
-
-    // If dropping on a ranked position, swap items
-    if (targetRank && newRankings[targetType][targetRank]) {
-      const existingItem = newRankings[targetType][targetRank];
-      
-      if (source.type === 'ranked') {
-        // Swap positions
-        newRankings[targetType][source.rank] = existingItem;
-        newRankings[targetType][targetRank] = activity;
-      } else {
-        // Move existing item to available, place new item in position
-        delete newRankings[targetType][targetRank];
-        newRankings[targetType][targetRank] = activity;
-      }
-    } else if (targetRank) {
-      // Dropping on empty rank position
-      if (source.type === 'ranked') {
-        delete newRankings[targetType][source.rank];
-      }
-      newRankings[targetType][targetRank] = activity;
-    } else {
-      // Dropping back to available (remove from rankings)
-      if (source.type === 'ranked') {
-        delete newRankings[targetType][source.rank];
-      }
-    }
-
+    // Remove item from old position and insert at new position
+    const [movedItem] = typeRankings.splice(draggedIndex.index, 1);
+    typeRankings.splice(dropIndex, 0, movedItem);
+    
+    // Update rank positions
+    typeRankings.forEach((item, idx) => {
+      item.rank_position = idx + 1;
+    });
+    
+    newRankings[type] = typeRankings;
     setRankings(newRankings);
-    setDraggedItem(null);
+    setDraggedIndex(null);
   };
 
   const saveVotes = async () => {
@@ -177,11 +235,11 @@ export default function MadisonVoting() {
       // Convert rankings to votes array
       const votes = [];
       Object.entries(rankings).forEach(([type, typeRankings]) => {
-        Object.entries(typeRankings).forEach(([rank, activity]) => {
+        typeRankings.forEach((activity, index) => {
           votes.push({
-            activity_name: activity.activity_name,
-            activity_type: activity.activity_type,
-            rank_position: parseInt(rank)
+            activity_name: activity.name,
+            activity_type: activity.type,
+            rank_position: index + 1
           });
         });
       });
@@ -248,26 +306,21 @@ export default function MadisonVoting() {
     );
   }
 
-  const groupedActivities = activities.reduce((groups, activity) => {
-    if (!groups[activity.type]) {
-      groups[activity.type] = [];
-    }
-    groups[activity.type].push(activity);
-    return groups;
-  }, {});
-
-  const activityTypes = Object.keys(groupedActivities);
+  const activityTypes = Object.keys(rankings);
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+        <div className="mb-3 mb-md-0">
           <h1>Madison Trip - Ranked Choice Voting</h1>
-          <p className="text-muted">Welcome, {session.user.email}! Drag activities to rank ALL your preferences (1st choice to last choice).</p>
+          <p className="text-muted">
+            Welcome, {session.user.email}! 
+            {isMobile ? ' Tap an item to select it, then tap another to swap positions.' : ' Drag items to reorder your preferences.'}
+          </p>
         </div>
-        <div>
+        <div className="d-flex flex-column flex-sm-row gap-2">
           <button 
-            className="btn btn-info me-2" 
+            className="btn btn-info" 
             onClick={handleShowResults}
           >
             {showResults ? 'Hide Results' : 'Show Results'}
@@ -307,14 +360,14 @@ export default function MadisonVoting() {
                     <th>Type</th>
                     <th>Score</th>
                     <th>Total Votes</th>
-                    <th>Top 3 Breakdown</th>
+                    <th className="d-none d-md-table-cell">Top 3 Breakdown</th>
                   </tr>
                 </thead>
                 <tbody>
                   {results.map((result, index) => (
                     <tr key={result.name}>
                       <td>
-                        {index < 3 && <span className="badge bg-warning me-2">Top {index + 1}</span>}
+                        {index < 3 && <span className="badge bg-warning me-2">#{index + 1}</span>}
                         {result.name}
                       </td>
                       <td>
@@ -324,7 +377,7 @@ export default function MadisonVoting() {
                       </td>
                       <td><strong>{result.score}</strong></td>
                       <td>{result.total_votes}</td>
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         <small>
                           1st: {result.votes_by_rank[1] || 0}, 
                           2nd: {result.votes_by_rank[2] || 0}, 
@@ -344,91 +397,47 @@ export default function MadisonVoting() {
       )}
 
       {activityTypes.map(type => {
-        const typeRankings = getRankingForType(type);
-        const availableActivities = getAvailableActivities(type);
+        const typeRankings = rankings[type] || [];
         
         return (
           <div key={type} className="card mb-4">
             <div className="card-header">
-              <h5 className="mb-0 text-capitalize">{type}s - Ranked Choice</h5>
+              <h5 className="mb-0 text-capitalize">{type}s - Drag to Reorder</h5>
             </div>
             <div className="card-body">
-              <div className="row">
-                {/* Ranking Slots */}
-                <div className="col-md-8">
-                  <h6>Your Rankings: ({Object.keys(typeRankings).length} of {getActivitiesCountByType(type)} ranked)</h6>
-                  <div 
-                    className="border rounded p-3"
-                    style={{ maxHeight: '400px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}
+              <div className="list-group">
+                {typeRankings.map((activity, index) => (
+                  <div
+                    key={`${activity.name}-${index}`}
+                    className={`list-group-item d-flex justify-content-between align-items-center ${
+                      selectedItem && selectedItem.type === type && selectedItem.index === index 
+                        ? 'list-group-item-warning' 
+                        : ''
+                    }`}
+                    style={{ 
+                      cursor: isMobile ? 'pointer' : 'grab',
+                      userSelect: 'none'
+                    }}
+                    draggable={!isMobile}
+                    onDragStart={(e) => handleDragStart(e, type, index)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, type, index)}
+                    onClick={() => handleItemTap(type, index)}
                   >
-                    <div className="row g-2">
-                      {getRankingSlots(type).map(rank => (
-                        <div key={rank} className="col-md-6 col-lg-4">
-                          <div 
-                            className="border rounded p-2 d-flex align-items-center"
-                            style={{ 
-                              minHeight: '45px',
-                              backgroundColor: typeRankings[rank] ? '#e8f5e8' : '#ffffff',
-                              borderStyle: 'dashed',
-                              borderColor: typeRankings[rank] ? '#28a745' : '#dee2e6',
-                              fontSize: '0.875rem'
-                            }}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, type, rank)}
-                          >
-                            {typeRankings[rank] ? (
-                              <div 
-                                className="d-flex justify-content-between align-items-center w-100"
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, typeRankings[rank], { type: 'ranked', rank })}
-                                style={{ cursor: 'grab' }}
-                              >
-                                <span>
-                                  <strong>{rank}.</strong> {typeRankings[rank].activity_name}
-                                </span>
-                                <small className="text-muted">↕</small>
-                              </div>
-                            ) : (
-                              <span className="text-muted small">
-                                {rank}. Drop here
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="d-flex align-items-center">
+                      <span className="badge bg-secondary me-3">{index + 1}</span>
+                      <span>{activity.name}</span>
+                    </div>
+                    <div className="d-flex align-items-center">
+                      {selectedItem && selectedItem.type === type && selectedItem.index === index && (
+                        <span className="badge bg-warning me-2">Selected</span>
+                      )}
+                      <span className="text-muted">
+                        {isMobile ? '📱' : '⋮⋮'}
+                      </span>
                     </div>
                   </div>
-                </div>
-
-                {/* Available Activities */}
-                <div className="col-md-4">
-                  <h6>Available {type}s:</h6>
-                  <div 
-                    className="border rounded p-3"
-                    style={{ minHeight: '300px', backgroundColor: '#f8f9fa' }}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, type, null)}
-                  >
-                    {availableActivities.map(activity => (
-                      <div 
-                        key={activity.name}
-                        className="card mb-2"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, activity, { type: 'available' })}
-                        style={{ cursor: 'grab' }}
-                      >
-                        <div className="card-body py-2">
-                          <small>{activity.name}</small>
-                        </div>
-                      </div>
-                    ))}
-                    {availableActivities.length === 0 && (
-                      <p className="text-muted text-center mt-4">
-                        All {type}s are ranked
-                      </p>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -438,12 +447,20 @@ export default function MadisonVoting() {
       <div className="alert alert-info">
         <h6>How to use:</h6>
         <ul className="mb-0">
-          <li>Drag activities from the "Available" section to your ranking slots</li>
-          <li>Drag between ranking slots to reorder</li>
-          <li>Drag back to "Available" to remove from rankings</li>
-          <li>You can rank ALL activities in each category (from 1st choice to last choice)</li>
-          <li>The ranking area scrolls - you don't have to rank everything if you don't want to</li>
-          <li>Click "Save Rankings" when you're satisfied with your choices</li>
+          {isMobile ? (
+            <>
+              <li>Tap an activity to select it (it will turn yellow)</li>
+              <li>Tap another activity to swap their positions</li>
+              <li>The numbers show the current ranking order</li>
+            </>
+          ) : (
+            <>
+              <li>Drag and drop activities to reorder them</li>
+              <li>The numbers show the current ranking order</li>
+              <li>Your 1st choice is at the top, last choice at the bottom</li>
+            </>
+          )}
+          <li>Click "Save Rankings" when you're satisfied with your order</li>
         </ul>
       </div>
     </div>
