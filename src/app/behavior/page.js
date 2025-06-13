@@ -209,6 +209,14 @@ export default function BehaviorPage() {
               ))}
             </select>
           </div>
+          <div className="mb-3">
+            <a href="/calendar" className="btn btn-outline-primary me-2">
+              📅 View Weekly Calendar
+            </a>
+            <a href="/manage-behaviors" className="btn btn-outline-secondary">
+              ⚙️ Manage Behaviors
+            </a>
+          </div>
         </div>
       </div>
 
