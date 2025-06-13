@@ -13,7 +13,7 @@ export function middleware(request) {
 
   console.log(`Middleware triggered for path: ${pathname}`);
 
-  if (pathname === '/' || pathname.startsWith('/api')|| pathname.startsWith('/squares')) {
+  if (pathname === '/' || pathname.startsWith('/api')|| pathname.startsWith('/squares')|| pathname.startsWith('/calendar')) {
     console.log('API route detected. Skipping middleware.');
     return NextResponse.next();
   }
