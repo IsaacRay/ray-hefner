@@ -15,26 +15,32 @@ export async function GET(req) {
     const summary = searchParams.get('summary') === 'true';
 
     if (summary) {
-      // Return vote counts by activity
+      // Return ranked choice voting results by activity
       const { data, error } = await supabase
         .from('madison_votes')
-        .select('activity_name, activity_type');
+        .select('activity_name, activity_type, rank_position');
 
       if (error) throw error;
 
-      const voteCounts = {};
+      const activityScores = {};
+      
+      // Calculate weighted scores (1st choice = 5 points, 2nd = 4, etc.)
       data.forEach(vote => {
-        if (!voteCounts[vote.activity_name]) {
-          voteCounts[vote.activity_name] = {
+        if (!activityScores[vote.activity_name]) {
+          activityScores[vote.activity_name] = {
             name: vote.activity_name,
             type: vote.activity_type,
-            votes: 0
+            score: 0,
+            votes_by_rank: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
           };
         }
-        voteCounts[vote.activity_name].votes++;
+        
+        const points = Math.max(0, 6 - vote.rank_position); // 5 points for 1st, 4 for 2nd, etc.
+        activityScores[vote.activity_name].score += points;
+        activityScores[vote.activity_name].votes_by_rank[vote.rank_position]++;
       });
 
-      return new Response(JSON.stringify(Object.values(voteCounts)), {
+      return new Response(JSON.stringify(Object.values(activityScores)), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -48,7 +54,7 @@ export async function GET(req) {
       query = query.eq('email', email);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query.order('rank_position', { ascending: true });
 
     if (error) throw error;
 
@@ -87,11 +93,12 @@ export async function POST(req) {
 
     if (deleteError) throw deleteError;
 
-    // Insert new votes
+    // Insert new votes with rankings
     const voteRecords = votes.map(vote => ({
       email,
       activity_name: vote.activity_name,
-      activity_type: vote.activity_type
+      activity_type: vote.activity_type,
+      rank_position: vote.rank_position
     }));
 
     const { data, error } = await supabase
