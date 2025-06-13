@@ -69,10 +69,10 @@ export default function SignInPage() {
     const redirect = urlParams.get('redirect')
     
     const isLocal = env === 'local'
-    let redirectPath = '/squares' // default
+    let redirectPath = '/madison' // default
     
-    if (redirect === 'madison') {
-      redirectPath = '/madison'
+    if (redirect === 'squares') {
+      redirectPath = '/squares'
     }
     
     const redirectUrl = isLocal
