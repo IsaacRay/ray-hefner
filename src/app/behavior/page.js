@@ -81,27 +81,51 @@ export default function BehaviorPage() {
     );
   };
 
-  // Save daily total for today only
+  // Save daily total and individual behavior completions for today
   const saveDailyTotal = async () => {
     if (!selectedChild) return;
 
     const checkedCount = behaviors.filter(b => b.checked).length;
     const todayDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    // Prepare individual behavior completions data
+    const completions = behaviors.map(behavior => ({
+      behavior_id: behavior.id,
+      behavior_name: behavior.name,
+      completed: behavior.checked
+    }));
+    
     try {
-      const response = await fetch('/api/totals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          child: selectedChild,
-          date: todayDate,
-          total: checkedCount
+      // Save both totals and individual completions
+      const [totalsResponse, completionsResponse] = await Promise.all([
+        // Save daily total (existing functionality)
+        fetch('/api/totals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            child: selectedChild,
+            date: todayDate,
+            total: checkedCount
+          }),
         }),
-      });
+        // Save individual behavior completions (new functionality)
+        fetch('/api/behavior-completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            child: selectedChild,
+            date: todayDate,
+            completions: completions
+          }),
+        })
+      ]);
 
-      if (!response.ok) throw new Error('Failed to save daily total');
+      if (!totalsResponse.ok) throw new Error('Failed to save daily total');
+      if (!completionsResponse.ok) throw new Error('Failed to save behavior completions');
 
       // Update local state for today
       const todayString = new Date().toDateString();
@@ -128,10 +152,10 @@ export default function BehaviorPage() {
 
       setWeeklyTotal(weekTotal);
 
-      alert('Today\'s total saved!');
+      alert('Today\'s behaviors and total saved!');
     } catch (error) {
-      console.error('Error saving daily total:', error);
-      alert('Failed to save daily total');
+      console.error('Error saving data:', error);
+      alert('Failed to save data: ' + error.message);
     }
   };
 
