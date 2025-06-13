@@ -1,0 +1,12 @@
+[
+  {"type": "restaurant", "name": "Coopers Tavern"},
+  {"type": "activity", "name": "Lake Wingra Boats"},
+  {"type": "restaurant", "name": "The Old Fashioned"},
+  {"type": "activity", "name": "State Capitol Tour"},
+  {"type": "restaurant", "name": "Graze"},
+  {"type": "activity", "name": "Memorial Union Terrace"},
+  {"type": "restaurant", "name": "L'Etoile"},
+  {"type": "activity", "name": "Henry Vilas Zoo"},
+  {"type": "restaurant", "name": "Merchant Public House"},
+  {"type": "activity", "name": "University of Wisconsin Campus Walk"}
+]

@@ -40,8 +40,16 @@ export default function SignInPage() {
     async function checkSession() {
       const { data } = await supabase.auth.getSession()
       if (data.session) {
-        // If session exists, redirect to /squares
-        router.push('/squares')
+        // Check if there's a redirect parameter
+        const urlParams = new URLSearchParams(window.location.search)
+        const redirect = urlParams.get('redirect')
+        
+        if (redirect === 'madison') {
+          router.push('/madison')
+        } else {
+          // Default redirect to /squares
+          router.push('/squares')
+        }
       } else {
         // Otherwise, show the sign-in form
         setCheckingSession(false)
@@ -56,10 +64,20 @@ export default function SignInPage() {
     setStatusMessage('')
     setIsLoading(true)
 
+    // Check if there's a redirect parameter in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const redirect = urlParams.get('redirect')
+    
     const isLocal = env === 'local'
+    let redirectPath = '/squares' // default
+    
+    if (redirect === 'madison') {
+      redirectPath = '/madison'
+    }
+    
     const redirectUrl = isLocal
-      ? 'http://localhost:3000/squares'
-      : 'https://ray-hefner.com/squares'
+      ? `http://localhost:3000${redirectPath}`
+      : `https://ray-hefner.com${redirectPath}`
     console.log(redirectUrl)
 
     const { error } = await supabase.auth.signInWithOtp({
