@@ -1,11 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import activities from './activities.json';
 
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
+const supabaseUrl = 'https://lzxiyzhookfqphsmrwup.supabase.co'
+
+// Initialize Supabase client
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  global: {
+    fetch: (url, options = {}) => {
+      return fetch(url, { ...options, cache: 'no-store' })
+    },
+  },
+})
+
 export default function MadisonVoting() {
-  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [selectedVotes, setSelectedVotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -19,11 +32,10 @@ export default function MadisonVoting() {
 
   const checkAuthentication = async () => {
     try {
-      const response = await fetch('/api/check-authenticated');
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        await loadUserVotes(userData.email);
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setSession(data.session);
+        await loadUserVotes(data.session.user.email);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -96,7 +108,7 @@ export default function MadisonVoting() {
   };
 
   const saveVotes = async () => {
-    if (!user) return;
+    if (!session) return;
     
     setSaving(true);
     try {
@@ -104,7 +116,7 @@ export default function MadisonVoting() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: user.email,
+          email: session.user.email,
           votes: selectedVotes
         })
       });
@@ -142,7 +154,7 @@ export default function MadisonVoting() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
       <div className="container mt-4">
         <div className="row justify-content-center">
@@ -151,7 +163,7 @@ export default function MadisonVoting() {
               <div className="card-body text-center">
                 <h2 className="card-title">Madison Trip Voting</h2>
                 <p className="card-text">Please authenticate to vote on trip activities.</p>
-                <a href="/magic-link" className="btn btn-primary">
+                <a href="/magic-link?redirect=madison" className="btn btn-primary">
                   Get Magic Link
                 </a>
               </div>
@@ -177,7 +189,7 @@ export default function MadisonVoting() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1>Madison Trip Voting</h1>
-          <p className="text-muted">Welcome, {user.email}! Vote for up to 5 of each activity type.</p>
+          <p className="text-muted">Welcome, {session.user.email}! Vote for up to 5 of each activity type.</p>
         </div>
         <div>
           <button 
