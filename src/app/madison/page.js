@@ -347,52 +347,64 @@ export default function MadisonVoting() {
       )}
 
       {showResults && (
-        <div className="card mb-4">
-          <div className="card-header">
-            <h5 className="mb-0">Current Results (Ranked Choice)</h5>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Activity</th>
-                    <th>Type</th>
-                    <th>Score</th>
-                    <th>Total Votes</th>
-                    <th className="d-none d-md-table-cell">Top 3 Breakdown</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.map((result, index) => (
-                    <tr key={result.name}>
-                      <td>
-                        {index < 3 && <span className="badge bg-warning me-2">#{index + 1}</span>}
-                        {result.name}
-                      </td>
-                      <td>
-                        <span className={`badge ${result.type === 'restaurant' ? 'bg-primary' : result.type === 'activity' ? 'bg-success' : 'bg-info'}`}>
-                          {result.type}
-                        </span>
-                      </td>
-                      <td><strong>{result.score}</strong></td>
-                      <td>{result.total_votes}</td>
-                      <td className="d-none d-md-table-cell">
-                        <small>
-                          1st: {result.votes_by_rank[1] || 0}, 
-                          2nd: {result.votes_by_rank[2] || 0}, 
-                          3rd: {result.votes_by_rank[3] || 0}
-                        </small>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <small className="text-muted">
-              Scoring: 1st choice = highest points, decreasing by 1 point per rank (dynamic based on category size)
-            </small>
-          </div>
+        <div className="mb-4">
+          <h4 className="mb-3">Current Results (Ranked Choice)</h4>
+          {Object.keys(rankings).map(type => {
+            const typeResults = results.filter(result => result.type === type);
+            if (typeResults.length === 0) return null;
+            
+            return (
+              <div key={type} className="card mb-3">
+                <div className="card-header">
+                  <h5 className="mb-0 text-capitalize">
+                    <span className={`badge me-2 ${type === 'restaurant' ? 'bg-primary' : type === 'activity' ? 'bg-success' : 'bg-info'}`}>
+                      {type}s
+                    </span>
+                    Results
+                  </h5>
+                </div>
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Name</th>
+                          <th>Score</th>
+                          <th>Total Votes</th>
+                          <th className="d-none d-md-table-cell">Top 3 Breakdown</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {typeResults.map((result, index) => (
+                          <tr key={result.name}>
+                            <td>
+                              <span className={`badge ${index < 3 ? 'bg-warning' : 'bg-secondary'}`}>
+                                #{index + 1}
+                              </span>
+                            </td>
+                            <td><strong>{result.name}</strong></td>
+                            <td><strong>{result.score}</strong></td>
+                            <td>{result.total_votes}</td>
+                            <td className="d-none d-md-table-cell">
+                              <small>
+                                1st: {result.votes_by_rank[1] || 0}, 
+                                2nd: {result.votes_by_rank[2] || 0}, 
+                                3rd: {result.votes_by_rank[3] || 0}
+                              </small>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <small className="text-muted">
+            Scoring: 1st choice = highest points, decreasing by 1 point per rank (dynamic based on category size)
+          </small>
         </div>
       )}
 
