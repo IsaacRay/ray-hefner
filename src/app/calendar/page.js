@@ -7,31 +7,94 @@ export default function Calendar() {
   const [calendarData, setCalendarData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastDataChange, setLastDataChange] = useState(null);
+  const [isPolling, setIsPolling] = useState(true);
 
   useEffect(() => {
     fetchCalendarData();
   }, []);
 
-  const fetchCalendarData = async () => {
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!isPolling) return;
+
+    const interval = setInterval(() => {
+      fetchCalendarData(true); // silent refresh
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [isPolling]);
+
+  const fetchCalendarData = async (silent = false) => {
     try {
+      if (!silent) setLoading(true);
       const response = await fetch('/api/calendar-data');
       if (!response.ok) throw new Error('Failed to fetch calendar data');
       const data = await response.json();
-      setCalendarData(data);
+      
+      // Compare with existing data to see if there are changes
+      const hasChanges = !calendarData || !deepEqual(calendarData, data);
+      
+      if (hasChanges) {
+        setCalendarData(data);
+        const now = new Date();
+        setLastUpdated(now);
+        setLastDataChange(now);
+        if (error) setError(null); // Clear any previous errors
+      }
+      
+      // For silent refreshes, still update timestamp even if no data changes
+      // so users know the system is checking for updates
+      if (silent && !hasChanges) {
+        setLastUpdated(new Date());
+      }
+      
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
+  // Deep equality check for objects
+  const deepEqual = (obj1, obj2) => {
+    if (obj1 === obj2) return true;
+    
+    if (obj1 == null || obj2 == null) return false;
+    
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+      return obj1 === obj2;
+    }
+    
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    
+    if (keys1.length !== keys2.length) return false;
+    
+    for (let key of keys1) {
+      if (!keys2.includes(key)) return false;
+      if (!deepEqual(obj1[key], obj2[key])) return false;
+    }
+    
+    return true;
+  };
+
+  const handleRefresh = () => {
+    fetchCalendarData();
+  };
+
+  const togglePolling = () => {
+    setIsPolling(!isPolling);
+  };
+
   const getDayName = (dateString) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T12:00:00');
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
   const getDateDisplay = (dateString) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T12:00:00');
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -41,7 +104,39 @@ export default function Calendar() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Weekly Star Calendar</h1>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.title}>Weekly Star Calendar</h1>
+        
+        <div className={styles.controls}>
+          <button 
+            onClick={handleRefresh} 
+            className={`${styles.button} ${styles.refreshButton}`}
+            disabled={loading}
+          >
+            {loading ? '🔄' : '↻'} Refresh
+          </button>
+          
+          <button 
+            onClick={togglePolling} 
+            className={`${styles.button} ${isPolling ? styles.pollingOn : styles.pollingOff}`}
+          >
+            {isPolling ? '⏸️ Pause Auto-Refresh' : '▶️ Enable Auto-Refresh'}
+          </button>
+          
+          {lastUpdated && (
+            <div className={styles.statusInfo}>
+              <span className={styles.lastUpdated}>
+                Last checked: {lastUpdated.toLocaleTimeString()}
+              </span>
+              {lastDataChange && (
+                <span className={styles.lastDataChange}>
+                  Data updated: {lastDataChange.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
       
       <div className={styles.calendar}>
         {/* Header with days */}

@@ -5,10 +5,87 @@
 }
 
 .title {
-  text-align: center;
-  margin-bottom: 30px;
   color: #333;
   font-size: 2rem;
+  margin: 0;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refreshButton {
+  background: #007bff;
+  color: white;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.pollingOn {
+  background: #28a745;
+  color: white;
+}
+
+.pollingOn:hover {
+  background: #1e7e34;
+}
+
+.pollingOff {
+  background: #dc3545;
+  color: white;
+}
+
+.pollingOff:hover {
+  background: #c82333;
+}
+
+.statusInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.lastUpdated {
+  font-size: 0.75rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+.lastDataChange {
+  font-size: 0.75rem;
+  color: #28a745;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .loading, .error {
