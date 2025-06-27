@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import Link from 'next/link'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 export const dynamic = 'force-dynamic'
 
@@ -116,70 +116,66 @@ export default function SquaresPage() {
   // Rendering logic
   if (loadingSession) {
     return (
-      <div className="container">
-        <div className="card mt-8">
-          <div className="text-center">
-            <div style={{ padding: '2rem' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔄</div>
-              <p>Checking your session...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <main className="container py-5">
+        <h1>Checking your session...</h1>
+      </main>
     )
   }
 
   if (!session) {
     return (
-      <div className="container">
-        <div className="card mt-8" style={{ maxWidth: '500px', margin: '2rem auto' }}>
-          <div className="card-header text-center">
-            <h1 className="card-title">Football Squares Pool</h1>
-            <p className="card-subtitle">Join the fun and win prizes!</p>
-          </div>
-          
-          <div className="text-center" style={{ padding: '2rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏈</div>
-            <p className="text-secondary mb-4">Please sign in to participate in the squares pool.</p>
-            <Link href="/magic-link" className="btn btn-primary">
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </div>
+      <main className="container py-5">
+        <h1>No active session found</h1>
+        <p>
+          <a href="/magic-link" className="btn btn-primary">
+            Go to Sign-In Page
+          </a>
+        </p>
+      </main>
     )
   }
 
   if (loadingSquares) {
     return (
-      <div className="container">
-        <div className="card mt-8">
-          <div className="text-center">
-            <div style={{ padding: '2rem' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔄</div>
-              <p>Loading squares...</p>
-            </div>
-          </div>
+      <main className="container py-5">
+        <div className="d-flex align-items-center">
+          <strong>Loading squares...</strong>
+          <div
+            className="spinner-border text-primary ms-3"
+            role="status"
+            aria-hidden="true"
+          ></div>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="container">
-      <main className="mt-8">
-        <div className="card">
-          <div className="card-header">
-            <h1 className="card-title">🏈 Football Squares Pool</h1>
-            <p className="card-subtitle">Welcome to the game! Pick your lucky squares.</p>
-          </div>
-          
-          <div className="mb-6">
-            <Link href="/home" className="btn btn-outline btn-sm mr-3">
-              ← Back to Home
-            </Link>
+    <main className="container py-5">
+      <div className="card shadow">
+        <div className="card-body">
+          <h1 className="card-title mb-3 text-center">Welcome!</h1>
+          <p className="card-text text-center">
+            AFC is on the top, NFC is on the side. Squares are $5 each,
+            you may select as many as you'd like.
+            <br />
+            Payouts are $125 for first quarter, $125 for halftime,
+            and $250 for final score. Good luck!
+            <br />
+            <br />
+            https://venmo.com/u/Isaac-Ray-2
+            <br />
+            <br />
+            https://www.paypal.me/IsaacRay
+          </p>
+
+          <br />
+          <p className="card-text text-center">
+            You are signed in as <strong>{session?.user?.email}</strong>
+          </p>
+          <div className="text-center mb-4">
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary"
               onClick={async () => {
                 await supabase.auth.signOut()
                 window.location.href = '/magic-link'
@@ -188,282 +184,127 @@ export default function SquaresPage() {
               Sign Out
             </button>
           </div>
+          <hr />
 
-          {/* Game Info */}
-          <div className="d-grid gap-4 mb-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-            <div className="card">
-              <h2 className="card-title text-lg mb-3">Game Rules</h2>
-              <ul className="text-sm">
-                <li>AFC is on the top, NFC is on the side</li>
-                <li>Squares are $5 each - select as many as you'd like</li>
-                <li>Numbers will be randomly assigned after all squares are filled</li>
-                <li>Winners determined by last digit of each team's score</li>
-              </ul>
-            </div>
+          <h4 className="mb-3 text-center">Select a Square</h4>
 
-            <div className="card">
-              <h2 className="card-title text-lg mb-3">💰 Payouts</h2>
-              <div className="d-flex gap-4" style={{ flexDirection: 'column' }}>
-                <div className="d-flex justify-between">
-                  <span>1st Quarter:</span>
-                  <span className="font-bold text-success">$125</span>
-                </div>
-                <div className="d-flex justify-between">
-                  <span>Halftime:</span>
-                  <span className="font-bold text-success">$125</span>
-                </div>
-                <div className="d-flex justify-between">
-                  <span>Final Score:</span>
-                  <span className="font-bold text-success">$250</span>
-                </div>
-              </div>
-            </div>
+          {/*
+            Wrap table in a container that:
+            - is sized to fit within the card
+            - allows horizontal scrolling on overflow
+            - is relatively positioned for the top/side GIFs
+          */}
+          <div
+            style={{
+              position: 'relative',
+              margin: '80px auto 0 auto', // push down from header
+              maxWidth: '100%', // fill card width
+              overflowX: 'auto', // horizontal scroll if too wide
+              padding: '100px'
+            }}
+          >
+            {/* Top GIF (centered horizontally) */}
+            <img
+              src="/AFC.gif"
+              alt="Top GIF"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                top: '0px',
+                width: '60px',
+                height: 'auto',
+              }}
+            />
 
-            <div className="card">
-              <h2 className="card-title text-lg mb-3">💳 Payment Info</h2>
-              <div className="text-sm">
-                <p className="mb-2">Venmo: <a href="https://venmo.com/u/Isaac-Ray-2" className="text-primary">@Isaac-Ray-2</a></p>
-                <p>PayPal: <a href="https://www.paypal.me/IsaacRay" className="text-primary">IsaacRay</a></p>
-              </div>
-            </div>
-          </div>
+            {/* Side GIF (centered vertically on left) */}
+            <img
+              src="/NFC.gif"
+              alt="Side GIF"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                left: '20px',
+                width: '60px',
+                height: 'auto',
+              }}
+            />
 
-          {/* User Info */}
-          <div className="card mb-6" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-            <div className="text-center">
-              <p className="text-secondary mb-2">Signed in as</p>
-              <p className="font-medium">{session?.user?.email}</p>
-            </div>
-          </div>
+            <table className="table table-bordered text-center align-middle">
+              {axisX.length > 0 && (
+                <thead>
+                  <tr>
+                    {axisY.length > 0 && <th></th>}
+                    {axisX.map((val, i) => (
+                      <th key={i}>{val}</th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
 
-          {/* Squares Grid */}
-          <div className="card mb-6">
-            <div className="card-header">
-              <h2 className="card-title text-lg text-center">Select Your Squares</h2>
-              <p className="card-subtitle text-center">Click any green square to claim it!</p>
-            </div>
-            
-            <div style={{ overflowX: 'auto', padding: 'var(--space-4)' }}>
-              <div
-                style={{
-                  position: 'relative',
-                  margin: '60px auto',
-                  display: 'inline-block',
-                  minWidth: '700px'
-                }}
-              >
-                {/* Top GIF (AFC) */}
-                <img
-                  src="/AFC.gif"
-                  alt="AFC"
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    top: '-50px',
-                    width: '50px',
-                    height: 'auto',
-                  }}
-                />
-
-                {/* Side GIF (NFC) */}
-                <img
-                  src="/NFC.gif"
-                  alt="NFC"
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    left: '-60px',
-                    width: '50px',
-                    height: 'auto',
-                  }}
-                />
-
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'auto repeat(10, 1fr)',
-                  gap: '2px',
-                  backgroundColor: 'var(--border-color)',
-                  padding: '2px',
-                  borderRadius: 'var(--border-radius)'
-                }}>
-                  {/* Header row */}
-                  <div></div>
-                  {axisX.length > 0 && axisX.map((val, i) => (
-                    <div 
-                      key={i} 
-                      className="text-center font-bold text-sm"
-                      style={{ 
-                        backgroundColor: 'var(--bg-tertiary)', 
-                        padding: 'var(--space-2)',
-                        minHeight: '30px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {val}
-                    </div>
-                  ))}
-
-                  {/* Grid rows */}
-                  {Array.from({ length: 10 }).map((_, rowIndex) => (
-                    <React.Fragment key={rowIndex}>
-                      {/* Row header */}
-                      {axisY.length > 0 && (
-                        <div 
-                          className="text-center font-bold text-sm"
-                          style={{ 
-                            backgroundColor: 'var(--bg-tertiary)', 
-                            padding: 'var(--space-2)',
-                            minWidth: '30px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
+              <tbody>
+                {Array.from({ length: 10 }).map((_, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {axisY.length > 0 && <th>{axisY[rowIndex]}</th>}
+                    {Array.from({ length: 10 }).map((_, colIndex) => {
+                      const squareId = rowIndex * 10 + colIndex
+                      const occupant = squares[squareId]
+                      return (
+                        <td
+                          key={colIndex}
+                          onClick={() => handleSquareClick(squareId)}
+                          style={{
+                            cursor: 'pointer',
+                            width: '60px',
+                            height: '60px',
+                            border:
+                              occupant === session.user.email
+                                ? '5px solid yellow'
+                                : '1px solid #ccc',
+                            backgroundColor: occupant
+                              ? occupant === session.user.email
+                                ? '#4181e0'
+                                : '#eb5468'
+                              : '#41e06c',
+                            color: '#fff',
                           }}
                         >
-                          {axisY[rowIndex]}
-                        </div>
-                      )}
-                      
-                      {/* Squares */}
-                      {Array.from({ length: 10 }).map((_, colIndex) => {
-                        const squareId = rowIndex * 10 + colIndex
-                        const occupant = squares[squareId]
-                        const isOwned = occupant === session.user.email
-                        const isAvailable = !occupant
-                        
-                        return (
-                          <div
-                            key={colIndex}
-                            onClick={() => handleSquareClick(squareId)}
-                            className="text-center text-xs font-medium"
-                            style={{
-                              cursor: 'pointer',
-                              minHeight: '50px',
-                              minWidth: '50px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              backgroundColor: isOwned 
-                                ? 'var(--color-primary)' 
-                                : isAvailable 
-                                  ? 'var(--color-success)'
-                                  : 'var(--color-error)',
-                              color: 'white',
-                              border: isOwned ? '3px solid var(--color-warning)' : 'none',
-                              borderRadius: 'var(--border-radius-sm)',
-                              transition: 'all var(--transition-fast)',
-                              padding: 'var(--space-1)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                            title={occupant || 'Available'}
-                          >
-                            {occupant ? (
-                              occupant.split('@')[0].substring(0, 8)
-                            ) : (
-                              'OPEN'
-                            )}
-                          </div>
-                        )
-                      })}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Legend */}
-            <div className="d-flex justify-center gap-4 text-sm">
-              <div className="d-flex align-center gap-2">
-                <div style={{ 
-                  width: '20px', 
-                  height: '20px', 
-                  backgroundColor: 'var(--color-success)', 
-                  borderRadius: 'var(--border-radius-sm)' 
-                }}></div>
-                <span>Available</span>
-              </div>
-              <div className="d-flex align-center gap-2">
-                <div style={{ 
-                  width: '20px', 
-                  height: '20px', 
-                  backgroundColor: 'var(--color-primary)', 
-                  border: '2px solid var(--color-warning)',
-                  borderRadius: 'var(--border-radius-sm)' 
-                }}></div>
-                <span>Your Squares</span>
-              </div>
-              <div className="d-flex align-center gap-2">
-                <div style={{ 
-                  width: '20px', 
-                  height: '20px', 
-                  backgroundColor: 'var(--color-error)', 
-                  borderRadius: 'var(--border-radius-sm)' 
-                }}></div>
-                <span>Taken</span>
-              </div>
-            </div>
+                          {occupant || 'Unclaimed!'}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {/* User Selection Counts */}
-          <div className="card">
-            <div className="card-header">
-              <h2 className="card-title text-lg">User Selection Counts</h2>
-            </div>
-            
-            {Object.keys(userCounts).length === 0 ? (
-              <div className="text-center" style={{ padding: '2rem' }}>
-                <p className="text-secondary">No squares have been selected yet.</p>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr auto',
-                  gap: 'var(--space-2)',
-                  minWidth: '300px'
-                }}>
-                  {/* Header */}
-                  <div className="font-semibold" style={{ 
-                    padding: 'var(--space-3)', 
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: 'var(--border-radius)'
-                  }}>User</div>
-                  <div className="font-semibold text-center" style={{ 
-                    padding: 'var(--space-3)', 
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: 'var(--border-radius)'
-                  }}>Squares</div>
-                  
-                  {/* User counts */}
-                  {Object.entries(userCounts).map(([userEmail, count]) => (
-                    <React.Fragment key={userEmail}>
-                      <div style={{ padding: 'var(--space-3)' }}>{userEmail.split('@')[0]}</div>
-                      <div className="text-center font-medium" style={{ padding: 'var(--space-3)' }}>{count}</div>
-                    </React.Fragment>
-                  ))}
-                  
-                  {/* Total */}
-                  <div className="font-bold" style={{ 
-                    padding: 'var(--space-3)',
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: 'var(--border-radius)'
-                  }}>TOTAL</div>
-                  <div className="font-bold text-center" style={{ 
-                    padding: 'var(--space-3)',
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: 'var(--border-radius)'
-                  }}>{Object.values(userCounts).reduce((sum, count) => sum + count, 0)} / 100</div>
-                </div>
-              </div>
-            )}
-          </div>
+          <hr />
+          <h4 className="mt-4">User Selection Counts</h4>
+          {Object.keys(userCounts).length === 0 ? (
+            <p className="text-muted">No squares have been selected yet.</p>
+          ) : (
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">User</th>
+                  <th scope="col">Squares Selected</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(userCounts).map(([userEmail, count]) => (
+                  <tr key={userEmail}>
+                    <td>{userEmail}</td>
+                    <td>{count}</td>
+                  </tr>
+                ))}
+                <tr><td>TOTAL</td><td>{Object.values(userCounts).reduce((sum, count) => sum + count, 0)}</td></tr>
+              </tbody>
+            </table>
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   )
 }

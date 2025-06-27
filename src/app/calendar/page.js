@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import styles from './calendar.module.css';
 
 export default function Calendar() {
   const [calendarData, setCalendarData] = useState(null);
@@ -10,8 +10,6 @@ export default function Calendar() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [lastDataChange, setLastDataChange] = useState(null);
   const [isPolling, setIsPolling] = useState(true);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchCalendarData();
@@ -90,70 +88,6 @@ export default function Calendar() {
     setIsPolling(!isPolling);
   };
 
-  const toggleEditMode = () => {
-    setIsEditMode(!isEditMode);
-    // Pause polling when in edit mode to avoid conflicts
-    if (!isEditMode) {
-      setIsPolling(false);
-    }
-  };
-
-  const handleBehaviorToggle = async (child, behaviorId, behaviorName, date, currentState) => {
-    if (!isEditMode) return;
-    
-    setSaving(true);
-    try {
-      const response = await fetch('/api/behavior-completion', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          child,
-          behavior_id: behaviorId,
-          behavior_name: behaviorName,
-          date,
-          completed: !currentState
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update behavior');
-      }
-
-      // Refresh the calendar data to show the changes
-      await fetchCalendarData(true);
-      
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Filter calendar data to only show last 7 days for editing
-  const getEditableCalendarData = () => {
-    if (!calendarData) return null;
-    
-    const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 7);
-    
-    return {
-      ...calendarData,
-      weekDays: calendarData.weekDays.filter(dateString => {
-        const date = new Date(dateString + 'T12:00:00');
-        return date >= sevenDaysAgo && date <= today;
-      }),
-      calendarData: calendarData.calendarData.map(childData => ({
-        ...childData,
-        weekData: childData.weekData.filter(dayData => {
-          const date = new Date(dayData.date + 'T12:00:00');
-          return date >= sevenDaysAgo && date <= today;
-        })
-      }))
-    };
-  };
-
   const getDayName = (dateString) => {
     const date = new Date(dateString + 'T12:00:00');
     return date.toLocaleDateString('en-US', { weekday: 'short' });
@@ -164,199 +98,90 @@ export default function Calendar() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="card mt-8">
-          <div className="text-center">
-            <div style={{ padding: '2rem' }}>Loading calendar...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container">
-        <div className="card mt-8">
-          <div className="text-center text-error">
-            <div style={{ padding: '2rem' }}>Error: {error}</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!calendarData) {
-    return (
-      <div className="container">
-        <div className="card mt-8">
-          <div className="text-center text-secondary">
-            <div style={{ padding: '2rem' }}>No data available</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className={styles.loading}>Loading calendar...</div>;
+  if (error) return <div className={styles.error}>Error: {error}</div>;
+  if (!calendarData) return <div className={styles.error}>No data available</div>;
 
   return (
-    <div className="container">
-      <main className="mt-8">
-        <div className="card">
-          <div className="card-header">
-            <h1 className="card-title">Weekly Star Calendar</h1>
-            <p className="card-subtitle">Track behavior progress and achievements</p>
-          </div>
+    <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.title}>Weekly Star Calendar</h1>
+        
+        <div className={styles.controls}>
+          <button 
+            onClick={handleRefresh} 
+            className={`${styles.button} ${styles.refreshButton}`}
+            disabled={loading}
+          >
+            {loading ? '🔄' : '↻'} Refresh
+          </button>
           
-          <div className="mb-6">
-            <Link href="/home" className="btn btn-outline btn-sm mr-3">
-              ← Back to Home
-            </Link>
-            <Link href="/behavior" className="btn btn-outline btn-sm">
-              📝 Daily Behaviors
-            </Link>
-          </div>
-
-          {/* Controls */}
-          <div className="card mb-6">
-            <div className="d-flex justify-between align-center mb-4">
-              <div className="d-flex gap-2">
-                <button 
-                  onClick={handleRefresh} 
-                  className="btn btn-secondary btn-sm"
-                  disabled={loading}
-                >
-                  {loading ? '🔄' : '↻'} Refresh
-                </button>
-                
-                <button 
-                  onClick={togglePolling} 
-                  className={`btn btn-sm ${isPolling ? 'btn-success' : 'btn-outline'}`}
-                  disabled={isEditMode}
-                >
-                  {isPolling ? '⏸️ Pause Auto-Refresh' : '▶️ Enable Auto-Refresh'}
-                </button>
-                
-                <button 
-                  onClick={toggleEditMode} 
-                  className={`btn btn-sm ${isEditMode ? 'btn-warning' : 'btn-outline'}`}
-                >
-                  {isEditMode ? '👁️ View Mode' : '✏️ Edit Mode'}
-                </button>
-              </div>
-
-              {lastUpdated && (
-                <div className="text-sm text-secondary">
-                  <div>Last checked: {lastUpdated.toLocaleTimeString()}</div>
-                  {lastDataChange && (
-                    <div>Data updated: {lastDataChange.toLocaleTimeString()}</div>
-                  )}
-                </div>
+          <button 
+            onClick={togglePolling} 
+            className={`${styles.button} ${isPolling ? styles.pollingOn : styles.pollingOff}`}
+          >
+            {isPolling ? '⏸️ Pause Auto-Refresh' : '▶️ Enable Auto-Refresh'}
+          </button>
+          
+          {lastUpdated && (
+            <div className={styles.statusInfo}>
+              <span className={styles.lastUpdated}>
+                Last checked: {lastUpdated.toLocaleTimeString()}
+              </span>
+              {lastDataChange && (
+                <span className={styles.lastDataChange}>
+                  Data updated: {lastDataChange.toLocaleTimeString()}
+                </span>
               )}
             </div>
-            
-            {isEditMode && (
-              <div className="card" style={{ backgroundColor: 'var(--color-warning-light)', padding: 'var(--space-4)' }}>
-                <div className="font-medium text-warning">
-                  Edit Mode: Click on behaviors to toggle them. Only showing last 7 days.
-                  {saving && <span className="ml-3 text-primary">Saving...</span>}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="card">
-            <div style={{ overflowX: 'auto' }}>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '150px repeat(7, 1fr)', 
-                gap: 'var(--space-2)',
-                minWidth: '800px'
-              }}>
-                {/* Header */}
-                <div className="font-semibold text-center" style={{ 
-                  padding: 'var(--space-3)', 
-                  backgroundColor: 'var(--bg-tertiary)',
-                  borderRadius: 'var(--border-radius)'
-                }}>
-                  Child
-                </div>
-                {(isEditMode ? getEditableCalendarData()?.weekDays : calendarData.weekDays)?.map(date => (
-                  <div key={date} className="text-center font-medium" style={{ 
-                    padding: 'var(--space-3)', 
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: 'var(--border-radius)'
-                  }}>
-                    <div className="text-sm">{getDayName(date)}</div>
-                    <div className="text-xs text-secondary">{getDateDisplay(date)}</div>
-                  </div>
-                ))}
-
-                {/* Calendar rows for each child */}
-                {(isEditMode ? getEditableCalendarData()?.calendarData : calendarData.calendarData)?.map(childData => (
-                  <React.Fragment key={childData.child}>
-                    <div className="font-medium text-center d-flex align-center justify-center" style={{ 
-                      padding: 'var(--space-4)', 
-                      backgroundColor: 'var(--bg-secondary)',
-                      borderRadius: 'var(--border-radius)'
-                    }}>
-                      {childData.child}
-                    </div>
-                    
-                    {childData.weekData.map(dayData => (
-                      <div key={dayData.date} className="card" style={{ padding: 'var(--space-3)', minHeight: '120px' }}>
-                        {/* Star display */}
-                        {dayData.total > 0 && (
-                          <div className="text-center mb-2">
-                            <span style={{ fontSize: 'var(--font-size-lg)' }}>
-                              {'⭐'.repeat(Math.min(dayData.total, 5))}
-                              {dayData.total > 5 && (
-                                <span className="text-sm text-success font-medium">
-                                  +{dayData.total - 5}
-                                </span>
-                              )}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Behaviors list */}
-                        <div className="d-flex gap-1" style={{ flexDirection: 'column' }}>
-                          {dayData.behaviors.map(behavior => (
-                            <div 
-                              key={behavior.id} 
-                              className={`text-xs ${behavior.starred ? 'text-success font-medium' : 'text-secondary'}`}
-                              onClick={() => isEditMode && handleBehaviorToggle(
-                                childData.child, 
-                                behavior.id, 
-                                behavior.name, 
-                                dayData.date, 
-                                behavior.starred
-                              )}
-                              style={{ 
-                                cursor: isEditMode ? 'pointer' : 'default',
-                                padding: 'var(--space-1)',
-                                borderRadius: 'var(--border-radius-sm)',
-                                backgroundColor: behavior.starred ? 'var(--color-success-light)' : 'transparent',
-                                border: isEditMode ? '1px solid var(--border-color)' : 'none',
-                                transition: 'all var(--transition-fast)'
-                              }}
-                            >
-                              {behavior.starred && <span>⭐ </span>}
-                              {behavior.name}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      </main>
+      </div>
+      
+      <div className={styles.calendar}>
+        {/* Header with days */}
+        <div className={styles.header}>
+          <div className={styles.childColumn}>Child</div>
+          {calendarData.weekDays.map(date => (
+            <div key={date} className={styles.dayColumn}>
+              <div className={styles.dayName}>{getDayName(date)}</div>
+              <div className={styles.dayDate}>{getDateDisplay(date)}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar rows for each child */}
+        {calendarData.calendarData.map(childData => (
+          <div key={childData.child} className={styles.childRow}>
+            <div className={styles.childName}>{childData.child}</div>
+            
+            {childData.weekData.map(dayData => (
+              <div key={dayData.date} className={styles.dayCell}>
+                <div className={styles.starCount}>
+                  {dayData.total > 0 && (
+                    <span className={styles.stars}>
+                      {'⭐'.repeat(Math.min(dayData.total, 5))}
+                      {dayData.total > 5 && ` +${dayData.total - 5}`}
+                    </span>
+                  )}
+                </div>
+                
+                <div className={styles.behaviors}>
+                  {dayData.behaviors.map(behavior => (
+                    <div 
+                      key={behavior.id} 
+                      className={`${styles.behavior} ${behavior.starred ? styles.starred : ''}`}
+                    >
+                      {behavior.starred && <span className={styles.star}>⭐</span>}
+                      {behavior.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
