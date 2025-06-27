@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Link from 'next/link';
 
 export default function BehaviorPage() {
   const [behaviors, setBehaviors] = useState([]);
@@ -187,19 +187,42 @@ export default function BehaviorPage() {
   };
 
   if (loading && selectedChild) {
-    return <div className="container mt-4">Loading behaviors...</div>;
+    return (
+      <div className="container">
+        <div className="card mt-8">
+          <div className="text-center">
+            <div style={{ padding: '2rem' }}>Loading behaviors...</div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mt-4">
-      {/* Child Selection */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <h1>Behavior Tracking</h1>
-          <div className="mb-3">
+    <div className="container">
+      <main className="mt-8">
+        <div className="card">
+          <div className="card-header">
+            <h1 className="card-title">Behavior Tracking</h1>
+            <p className="card-subtitle">Track daily behaviors and weekly progress</p>
+          </div>
+          
+          <div className="mb-6">
+            <Link href="/home" className="btn btn-outline btn-sm mr-3">
+              ← Back to Home
+            </Link>
+            <Link href="/calendar" className="btn btn-outline btn-sm mr-3">
+              📅 Weekly Calendar
+            </Link>
+            <Link href="/manage-behaviors" className="btn btn-outline btn-sm">
+              ⚙️ Manage Behaviors
+            </Link>
+          </div>
+
+          <div className="form-group">
             <label className="form-label">Select Child:</label>
             <select 
-              className="form-select" 
+              className="form-control" 
               value={selectedChild} 
               onChange={(e) => setSelectedChild(e.target.value)}
             >
@@ -209,89 +232,99 @@ export default function BehaviorPage() {
               ))}
             </select>
           </div>
-          <div className="mb-3">
-            <a href="/calendar" className="btn btn-outline-primary me-2">
-              📅 View Weekly Calendar
-            </a>
-            <a href="/manage-behaviors" className="btn btn-outline-secondary">
-              ⚙️ Manage Behaviors
-            </a>
-          </div>
-        </div>
-      </div>
 
-      {selectedChild && (
-        <>
-          <div className="row">
-            <div className="col-md-8">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h3>Today's Behaviors for {selectedChild}</h3>
-                <div>
-                  <button className="btn btn-secondary me-2" onClick={resetBehaviors}>
-                    Reset Day
-                  </button>
-                  <button className="btn btn-primary" onClick={saveDailyTotal}>
-                    Save Daily Total
-                  </button>
-                </div>
-              </div>
-
-              {behaviors.length === 0 ? (
-                <p>No behaviors configured.</p>
-              ) : (
-                <div className="card">
-                  <div className="card-body">
-                    {behaviors.map((behavior) => (
-                      <div key={behavior.id} className="form-check mb-3 p-3 border rounded">
-                        <input
-                          className="form-check-input me-3"
-                          type="checkbox"
-                          id={`behavior-${behavior.id}`}
-                          checked={behavior.checked}
-                          onChange={(e) => handleBehaviorChange(behavior.id, e.target.checked)}
-                        />
-                        <label className="form-check-label" htmlFor={`behavior-${behavior.id}`}>
-                          <strong>{behavior.name}</strong>
-                          {behavior.description && (
-                            <div className="text-muted small mt-1">{behavior.description}</div>
-                          )}
-                        </label>
-                      </div>
-                    ))}
-                    
-                    <div className="mt-4 p-3 bg-light rounded">
-                      <h5>Today's Count: {behaviors.filter(b => b.checked).length} / {behaviors.length}</h5>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="col-md-4">
+          {selectedChild && (
+            <div className="d-grid gap-6 mt-6" style={{ gridTemplateColumns: '2fr 1fr' }}>
+              {/* Today's Behaviors */}
               <div className="card">
                 <div className="card-header">
-                  <h5 className="mb-0">Weekly Progress</h5>
-                </div>
-                <div className="card-body">
-                  <div className="text-center mb-4">
-                    <h2 className="text-primary">{weeklyTotal}</h2>
-                    <p className="text-muted">Total Points This Week</p>
+                  <h2 className="card-title text-lg">Today's Behaviors for {selectedChild}</h2>
+                  <div className="d-flex gap-2 mt-3">
+                    <button className="btn btn-secondary btn-sm" onClick={resetBehaviors}>
+                      Reset Day
+                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={saveDailyTotal}>
+                      Save Daily Total
+                    </button>
                   </div>
+                </div>
 
-                  <h6>Daily Breakdown</h6>
-                  <div className="list-group list-group-flush">
+                {behaviors.length === 0 ? (
+                  <div className="text-center" style={{ padding: '3rem' }}>
+                    <p className="text-secondary">No behaviors configured.</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="d-flex gap-3 mb-4" style={{ flexDirection: 'column' }}>
+                      {behaviors.map((behavior) => (
+                        <div key={behavior.id} className="card" style={{ padding: 'var(--space-4)' }}>
+                          <div className="d-flex align-center gap-3">
+                            <input
+                              type="checkbox"
+                              id={`behavior-${behavior.id}`}
+                              checked={behavior.checked}
+                              onChange={(e) => handleBehaviorChange(behavior.id, e.target.checked)}
+                              style={{ transform: 'scale(1.3)' }}
+                            />
+                            <label htmlFor={`behavior-${behavior.id}`} style={{ cursor: 'pointer', flex: 1 }}>
+                              <div className="font-medium text-primary">{behavior.name}</div>
+                              {behavior.description && (
+                                <div className="text-secondary text-sm mt-1">{behavior.description}</div>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="card" style={{ backgroundColor: 'var(--bg-tertiary)', padding: 'var(--space-4)' }}>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-primary">
+                          {behaviors.filter(b => b.checked).length} / {behaviors.length}
+                        </div>
+                        <div className="text-secondary text-sm">Today's Progress</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Weekly Progress */}
+              <div className="card">
+                <div className="card-header">
+                  <h2 className="card-title text-lg">Weekly Progress</h2>
+                </div>
+                
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold text-primary">{weeklyTotal}</div>
+                  <div className="text-secondary text-sm">Total Points This Week</div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium mb-3">Daily Breakdown</h3>
+                  <div className="d-flex gap-2" style={{ flexDirection: 'column' }}>
                     {getLast7Days().map(date => {
                       const dateString = date.toDateString();
                       const isToday = dateString === today;
                       const total = dailyTotals[dateString] || 0;
                       
                       return (
-                        <div key={dateString} className={`list-group-item d-flex justify-content-between ${isToday ? 'bg-light' : ''}`}>
-                          <span>
+                        <div 
+                          key={dateString} 
+                          className={`d-flex justify-between align-center ${isToday ? 'card' : ''}`}
+                          style={{ 
+                            padding: isToday ? 'var(--space-3)' : 'var(--space-2)',
+                            backgroundColor: isToday ? 'var(--color-primary-light)' : 'transparent',
+                            borderRadius: isToday ? 'var(--border-radius)' : '0'
+                          }}
+                        >
+                          <span className="text-sm">
                             {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                            {isToday && <small className="text-primary ms-2">(Today)</small>}
+                            {isToday && <span className="text-primary font-medium ml-2">(Today)</span>}
                           </span>
-                          <span className="badge bg-secondary">{total}</span>
+                          <span className={`text-sm font-medium ${total > 0 ? 'text-success' : 'text-secondary'}`}>
+                            {total}
+                          </span>
                         </div>
                       );
                     })}
@@ -299,9 +332,9 @@ export default function BehaviorPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          )}
+        </div>
+      </main>
     </div>
   );
 }

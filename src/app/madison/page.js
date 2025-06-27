@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Link from 'next/link';
 import activities from './activities.json';
 
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY
@@ -275,12 +275,14 @@ export default function MadisonVoting() {
 
   if (loading) {
     return (
-      <div className="container mt-4">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
+      <div className="container">
+        <div className="card mt-8">
+          <div className="text-center">
+            <div style={{ padding: '2rem' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔄</div>
+              <p>Checking authentication...</p>
+            </div>
           </div>
-          <p className="mt-2">Checking authentication...</p>
         </div>
       </div>
     );
@@ -288,18 +290,19 @@ export default function MadisonVoting() {
 
   if (!session) {
     return (
-      <div className="container mt-4">
-        <div className="row justify-content-center">
-          <div className="col-md-6">
-            <div className="card">
-              <div className="card-body text-center">
-                <h2 className="card-title">Madison Trip Voting</h2>
-                <p className="card-text">Please authenticate to vote on trip activities.</p>
-                <a href="/magic-link?redirect=madison" className="btn btn-primary">
-                  Get Magic Link
-                </a>
-              </div>
-            </div>
+      <div className="container">
+        <div className="card mt-8" style={{ maxWidth: '500px', margin: '2rem auto' }}>
+          <div className="card-header text-center">
+            <h1 className="card-title">Madison Trip Voting</h1>
+            <p className="card-subtitle">Rank your preferences for our Madison trip</p>
+          </div>
+          
+          <div className="text-center" style={{ padding: '2rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗳️</div>
+            <p className="text-secondary mb-4">Please authenticate to vote on trip activities.</p>
+            <Link href="/magic-link?redirect=madison" className="btn btn-primary">
+              Get Magic Link
+            </Link>
           </div>
         </div>
       </div>
@@ -309,172 +312,214 @@ export default function MadisonVoting() {
   const activityTypes = Object.keys(rankings);
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-        <div className="mb-3 mb-md-0">
-          <h1>Madison Trip - Ranked Choice Voting</h1>
-          <p className="text-muted">
-            Welcome, {session.user.email}! 
-            {isMobile ? ' Tap an item to select it, then tap another to swap positions.' : ' Drag items to reorder your preferences.'}
-          </p>
-        </div>
-        <div className="d-flex flex-column flex-sm-row gap-2">
-          <button 
-            className="btn btn-info" 
-            onClick={handleShowResults}
-          >
-            {showResults ? 'Hide Results' : 'Show Results'}
-          </button>
-          <button 
-            className="btn btn-success" 
-            onClick={saveVotes}
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : 'Save Rankings'}
-          </button>
-        </div>
-      </div>
+    <div className="container">
+      <main className="mt-8">
+        <div className="card">
+          <div className="card-header">
+            <h1 className="card-title">Madison Trip Voting</h1>
+            <p className="card-subtitle">
+              Welcome, {session.user.email}! 
+              {isMobile ? ' Tap items to reorder your preferences.' : ' Drag items to reorder your preferences.'}
+            </p>
+          </div>
+          
+          <div className="mb-6">
+            <Link href="/home" className="btn btn-outline btn-sm mr-3">
+              ← Back to Home
+            </Link>
+            <button 
+              className={`btn btn-sm mr-3 ${showResults ? 'btn-warning' : 'btn-outline'}`}
+              onClick={handleShowResults}
+            >
+              {showResults ? 'Hide Results' : 'Show Results'}
+            </button>
+            <button 
+              className="btn btn-success btn-sm" 
+              onClick={saveVotes}
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Rankings'}
+            </button>
+          </div>
 
-      {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show`} role="alert">
-          {alert.message}
-          <button 
-            type="button" 
-            className="btn-close" 
-            onClick={() => setAlert(null)}
-          ></button>
-        </div>
-      )}
+          {alert && (
+            <div className={`card mb-6 ${alert.type === 'danger' ? 'text-error' : 'text-success'}`} 
+                 style={{ backgroundColor: alert.type === 'danger' ? 'var(--color-error-light)' : 'var(--color-success-light)' }}>
+              <div className="d-flex justify-between align-center">
+                <span>{alert.message}</span>
+                <button 
+                  className="btn btn-sm btn-outline" 
+                  onClick={() => setAlert(null)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
 
-      {showResults && (
-        <div className="mb-4">
-          <h4 className="mb-3">Current Results (Ranked Choice)</h4>
-          {Object.keys(rankings).map(type => {
-            const typeResults = results.filter(result => result.type === type);
-            if (typeResults.length === 0) return null;
-            
-            return (
-              <div key={type} className="card mb-3">
-                <div className="card-header">
-                  <h5 className="mb-0 text-capitalize">
-                    <span className={`badge me-2 ${type === 'restaurant' ? 'bg-primary' : type === 'activity' ? 'bg-success' : 'bg-info'}`}>
-                      {type}s
-                    </span>
-                    Results
-                  </h5>
-                </div>
-                <div className="card-body">
-                  <div className="table-responsive">
-                    <table className="table table-hover">
-                      <thead>
-                        <tr>
-                          <th>Rank</th>
-                          <th>Name</th>
-                          <th>Score</th>
-                          <th>Total Votes</th>
-                          <th className="d-none d-md-table-cell">Top 3 Breakdown</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+          {showResults && (
+            <div className="card mb-6">
+              <div className="card-header">
+                <h2 className="card-title text-lg">Current Results (Ranked Choice)</h2>
+              </div>
+              
+              {Object.keys(rankings).map(type => {
+                const typeResults = results.filter(result => result.type === type);
+                if (typeResults.length === 0) return null;
+                
+                const getBadgeColor = (type) => {
+                  switch(type) {
+                    case 'restaurant': return 'btn-primary';
+                    case 'activity': return 'btn-success';
+                    default: return 'btn-secondary';
+                  }
+                };
+                
+                return (
+                  <div key={type} className="card mb-4">
+                    <div className="card-header">
+                      <h3 className="card-title text-base">
+                        <span className={`btn btn-sm ${getBadgeColor(type)} mr-2`} style={{ pointerEvents: 'none' }}>
+                          {type}s
+                        </span>
+                        Results
+                      </h3>
+                    </div>
+                    
+                    <div style={{ overflowX: 'auto' }}>
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '60px 1fr 80px 80px 200px',
+                        gap: 'var(--space-2)',
+                        minWidth: '600px'
+                      }}>
+                        {/* Header */}
+                        <div className="font-semibold text-sm" style={{ padding: 'var(--space-3)', backgroundColor: 'var(--bg-tertiary)' }}>Rank</div>
+                        <div className="font-semibold text-sm" style={{ padding: 'var(--space-3)', backgroundColor: 'var(--bg-tertiary)' }}>Name</div>
+                        <div className="font-semibold text-sm" style={{ padding: 'var(--space-3)', backgroundColor: 'var(--bg-tertiary)' }}>Score</div>
+                        <div className="font-semibold text-sm" style={{ padding: 'var(--space-3)', backgroundColor: 'var(--bg-tertiary)' }}>Votes</div>
+                        <div className="font-semibold text-sm" style={{ padding: 'var(--space-3)', backgroundColor: 'var(--bg-tertiary)' }}>Top 3 Breakdown</div>
+                        
+                        {/* Results */}
                         {typeResults.map((result, index) => (
-                          <tr key={result.name}>
-                            <td>
-                              <span className={`badge ${index < 3 ? 'bg-warning' : 'bg-secondary'}`}>
+                          <React.Fragment key={result.name}>
+                            <div className="d-flex align-center" style={{ padding: 'var(--space-3)' }}>
+                              <span className={`btn btn-sm ${index < 3 ? 'btn-warning' : 'btn-outline'}`} style={{ pointerEvents: 'none' }}>
                                 #{index + 1}
                               </span>
-                            </td>
-                            <td><strong>{result.name}</strong></td>
-                            <td><strong>{result.score}</strong></td>
-                            <td>{result.total_votes}</td>
-                            <td className="d-none d-md-table-cell">
-                              <small>
-                                1st: {result.votes_by_rank[1] || 0}, 
-                                2nd: {result.votes_by_rank[2] || 0}, 
-                                3rd: {result.votes_by_rank[3] || 0}
-                              </small>
-                            </td>
-                          </tr>
+                            </div>
+                            <div className="d-flex align-center font-medium" style={{ padding: 'var(--space-3)' }}>{result.name}</div>
+                            <div className="d-flex align-center font-bold text-primary" style={{ padding: 'var(--space-3)' }}>{result.score}</div>
+                            <div className="d-flex align-center" style={{ padding: 'var(--space-3)' }}>{result.total_votes}</div>
+                            <div className="d-flex align-center text-sm text-secondary" style={{ padding: 'var(--space-3)' }}>
+                              1st: {result.votes_by_rank[1] || 0}, 2nd: {result.votes_by_rank[2] || 0}, 3rd: {result.votes_by_rank[3] || 0}
+                            </div>
+                          </React.Fragment>
                         ))}
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+              <div className="text-sm text-secondary">
+                Scoring: 1st choice = highest points, decreasing by 1 point per rank (dynamic based on category size)
+              </div>
+            </div>
+          )}
+
+          {activityTypes.map(type => {
+            const typeRankings = rankings[type] || [];
+            
+            const getTypeEmoji = (type) => {
+              switch(type) {
+                case 'restaurant': return '🍽️';
+                case 'activity': return '🎯';
+                case 'bar': return '🍻';
+                default: return '📋';
+              }
+            };
+            
+            return (
+              <div key={type} className="card mb-4">
+                <div className="card-header">
+                  <h2 className="card-title text-lg">
+                    {getTypeEmoji(type)} {type.charAt(0).toUpperCase() + type.slice(1)}s - {isMobile ? 'Tap to Reorder' : 'Drag to Reorder'}
+                  </h2>
+                </div>
+                
+                <div className="d-flex gap-2" style={{ flexDirection: 'column' }}>
+                  {typeRankings.map((activity, index) => (
+                    <div
+                      key={`${activity.name}-${index}`}
+                      className={`card d-flex justify-between align-center ${
+                        selectedItem && selectedItem.type === type && selectedItem.index === index 
+                          ? 'text-warning' 
+                          : ''
+                      }`}
+                      style={{ 
+                        cursor: isMobile ? 'pointer' : 'grab',
+                        userSelect: 'none',
+                        backgroundColor: selectedItem && selectedItem.type === type && selectedItem.index === index 
+                          ? 'var(--color-warning-light)' 
+                          : 'var(--bg-primary)',
+                        border: selectedItem && selectedItem.type === type && selectedItem.index === index 
+                          ? '2px solid var(--color-warning)' 
+                          : '1px solid var(--border-color)',
+                        transition: 'all var(--transition-fast)',
+                        padding: 'var(--space-4)'
+                      }}
+                      draggable={!isMobile}
+                      onDragStart={(e) => handleDragStart(e, type, index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, type, index)}
+                      onClick={() => handleItemTap(type, index)}
+                    >
+                      <div className="d-flex align-center gap-3">
+                        <span className="btn btn-sm btn-secondary" style={{ pointerEvents: 'none', minWidth: '35px' }}>
+                          {index + 1}
+                        </span>
+                        <span className="font-medium">{activity.name}</span>
+                      </div>
+                      
+                      <div className="d-flex align-center gap-2">
+                        {selectedItem && selectedItem.type === type && selectedItem.index === index && (
+                          <span className="btn btn-sm btn-warning" style={{ pointerEvents: 'none' }}>Selected</span>
+                        )}
+                        <span className="text-secondary">
+                          {isMobile ? '📱' : '⋮⋮'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
           })}
-          <small className="text-muted">
-            Scoring: 1st choice = highest points, decreasing by 1 point per rank (dynamic based on category size)
-          </small>
-        </div>
-      )}
 
-      {activityTypes.map(type => {
-        const typeRankings = rankings[type] || [];
-        
-        return (
-          <div key={type} className="card mb-4">
+          {/* Instructions */}
+          <div className="card" style={{ backgroundColor: 'var(--color-primary-light)' }}>
             <div className="card-header">
-              <h5 className="mb-0 text-capitalize">{type}s - Drag to Reorder</h5>
+              <h3 className="card-title text-base">How to use:</h3>
             </div>
-            <div className="card-body">
-              <div className="list-group">
-                {typeRankings.map((activity, index) => (
-                  <div
-                    key={`${activity.name}-${index}`}
-                    className={`list-group-item d-flex justify-content-between align-items-center ${
-                      selectedItem && selectedItem.type === type && selectedItem.index === index 
-                        ? 'list-group-item-warning' 
-                        : ''
-                    }`}
-                    style={{ 
-                      cursor: isMobile ? 'pointer' : 'grab',
-                      userSelect: 'none'
-                    }}
-                    draggable={!isMobile}
-                    onDragStart={(e) => handleDragStart(e, type, index)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, type, index)}
-                    onClick={() => handleItemTap(type, index)}
-                  >
-                    <div className="d-flex align-items-center">
-                      <span className="badge bg-secondary me-3">{index + 1}</span>
-                      <span>{activity.name}</span>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      {selectedItem && selectedItem.type === type && selectedItem.index === index && (
-                        <span className="badge bg-warning me-2">Selected</span>
-                      )}
-                      <span className="text-muted">
-                        {isMobile ? '📱' : '⋮⋮'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ul className="text-sm">
+              {isMobile ? (
+                <>
+                  <li>Tap an activity to select it (it will highlight yellow)</li>
+                  <li>Tap another activity to swap their positions</li>
+                  <li>The numbers show the current ranking order</li>
+                </>
+              ) : (
+                <>
+                  <li>Drag and drop activities to reorder them</li>
+                  <li>The numbers show the current ranking order</li>
+                  <li>Your 1st choice is at the top, last choice at the bottom</li>
+                </>
+              )}
+              <li>Click "Save Rankings" when you're satisfied with your order</li>
+            </ul>
           </div>
-        );
-      })}
-
-      <div className="alert alert-info">
-        <h6>How to use:</h6>
-        <ul className="mb-0">
-          {isMobile ? (
-            <>
-              <li>Tap an activity to select it (it will turn yellow)</li>
-              <li>Tap another activity to swap their positions</li>
-              <li>The numbers show the current ranking order</li>
-            </>
-          ) : (
-            <>
-              <li>Drag and drop activities to reorder them</li>
-              <li>The numbers show the current ranking order</li>
-              <li>Your 1st choice is at the top, last choice at the bottom</li>
-            </>
-          )}
-          <li>Click "Save Rankings" when you're satisfied with your order</li>
-        </ul>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
