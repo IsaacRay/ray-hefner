@@ -8,7 +8,7 @@ export default function ReligionPage() {
     padding: '40px 20px',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     minHeight: '100vh',
-    backgroundImage: 'url(/image.png)',
+    backgroundImage: 'url(/public/image.png)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
@@ -31,40 +31,15 @@ export default function ReligionPage() {
     color: '#e6f2ff'
   };
 
-  const imagePlaceholder = {
-    width: '100%',
-    minHeight: '200px',
-    backgroundColor: '#f0f0f0',
-    border: '2px dashed #ccc',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.9rem',
-    color: '#666',
-    textAlign: 'center',
-    padding: '20px',
-    marginBottom: '16px'
-  };
 
   return (
     <div style={containerStyle}>
       <div style={overlayStyle}></div>
       <div style={contentStyle}>
       <header style={{ textAlign: 'center', marginBottom: '48px' }}>
-        {/* Header Image Placeholder */}
-        <div style={imagePlaceholder}>
-          <div>
-            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎨 AI Art Placeholder</p>
-            <p style={{ margin: 0, fontSize: '0.8rem' }}>
-              Replace with: /public/images/stellar-harmony-header.jpg<br/>
-              Suggested: Cosmic/celestial themed header image
-            </p>
-          </div>
-        </div>
         
         <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#f4d03f', marginTop: '24px', textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>
-          ⭐ The Order of Stellar Harmony
+          The Order of Stellar Harmony
         </h1>
         <p style={{ fontSize: '1.1rem', color: '#a8c8ec', fontStyle: 'italic' }}>
           A Fictional Religion for Creative Worldbuilding
@@ -80,7 +55,7 @@ export default function ReligionPage() {
         backdropFilter: 'blur(5px)'
       }}>
         <p style={{ fontSize: '0.9rem', color: '#a8c8ec', margin: 0, textAlign: 'center', fontWeight: '600' }}>
-          🎭 FICTIONAL CONTENT - Created for storytelling and worldbuilding purposes
+          FICTIONAL CONTENT - Created for storytelling and worldbuilding purposes
         </p>
       </div>
 
@@ -89,16 +64,6 @@ export default function ReligionPage() {
           Origin Story
         </h2>
         
-        {/* Origin Story Image Placeholder */}
-        <div style={imagePlaceholder}>
-          <div>
-            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎨 AI Art Placeholder</p>
-            <p style={{ margin: 0, fontSize: '0.8rem' }}>
-              Replace with: /public/images/lyra-stellaris-founder.jpg<br/>
-              Suggested: Portrait of Lyra Stellaris studying star charts
-            </p>
-          </div>
-        </div>
         
         <div style={{ backgroundColor: 'rgba(35, 67, 107, 0.7)', padding: '24px', borderRadius: '8px', lineHeight: '1.7', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
           <p>Long ago, when the first astronomers gazed upward, they noticed that certain star patterns seemed to pulse in rhythm with human emotions and natural cycles. The founder, Lyra Stellaris, a brilliant mathematician and philosopher, discovered what she called the "Cosmic Resonance" - the idea that consciousness itself creates ripples throughout the universe.</p>
@@ -112,27 +77,14 @@ export default function ReligionPage() {
           Core Tenets
         </h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
-          <div style={{ backgroundColor: 'rgba(35, 67, 107, 0.7)', padding: '24px', borderRadius: '8px', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
-            <ol style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
-              <li><strong>Stellar Reflection:</strong> Every action creates ripples in the cosmic fabric. Consider the far-reaching effects of your choices.</li>
-              <li><strong>Luminous Learning:</strong> Knowledge shared multiplies like starlight - the more you teach, the brighter the universe becomes.</li>
-              <li><strong>Orbital Balance:</strong> Just as planets maintain stable orbits, seek equilibrium between work, rest, relationships, and solitude.</li>
-              <li><strong>Constellation Community:</strong> Individual stars shine brighter when part of a constellation. Support others while maintaining your unique light.</li>
-              <li><strong>Cosmic Curiosity:</strong> Wonder and questioning are sacred. The universe rewards those who seek to understand its mysteries.</li>
-            </ol>
-          </div>
-          
-          {/* Side Image Placeholder */}
-          <div style={{...imagePlaceholder, minHeight: '250px'}}>
-            <div>
-              <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎨 AI Art Placeholder</p>
-              <p style={{ margin: 0, fontSize: '0.8rem' }}>
-                Replace with: /public/images/cosmic-tenets.jpg<br/>
-                Suggested: Abstract cosmic imagery representing the five tenets
-              </p>
-            </div>
-          </div>
+        <div style={{ backgroundColor: 'rgba(35, 67, 107, 0.7)', padding: '24px', borderRadius: '8px', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
+          <ol style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
+            <li><strong>Stellar Reflection:</strong> Every action creates ripples in the cosmic fabric. Consider the far-reaching effects of your choices.</li>
+            <li><strong>Luminous Learning:</strong> Knowledge shared multiplies like starlight - the more you teach, the brighter the universe becomes.</li>
+            <li><strong>Orbital Balance:</strong> Just as planets maintain stable orbits, seek equilibrium between work, rest, relationships, and solitude.</li>
+            <li><strong>Constellation Community:</strong> Individual stars shine brighter when part of a constellation. Support others while maintaining your unique light.</li>
+            <li><strong>Cosmic Curiosity:</strong> Wonder and questioning are sacred. The universe rewards those who seek to understand its mysteries.</li>
+          </ol>
         </div>
       </section>
 
@@ -141,19 +93,8 @@ export default function ReligionPage() {
           Sacred Symbol
         </h2>
         
-        {/* Sacred Symbol Image Placeholder */}
-        <div style={{...imagePlaceholder, maxWidth: '400px', margin: '0 auto 24px auto'}}>
-          <div>
-            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎨 AI Art Placeholder</p>
-            <p style={{ margin: 0, fontSize: '0.8rem' }}>
-              Replace with: /public/images/sacred-symbol.jpg<br/>
-              Suggested: Artistic rendering of three interconnected stars
-            </p>
-          </div>
-        </div>
         
         <div style={{ textAlign: 'center', padding: '32px', backgroundColor: 'rgba(35, 67, 107, 0.7)', borderRadius: '8px', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⭐🌟✨</div>
           <p style={{ fontSize: '1rem', color: '#a8c8ec', fontStyle: 'italic' }}>
             Three stars representing Past Wisdom, Present Action, and Future Harmony
           </p>
@@ -165,16 +106,6 @@ export default function ReligionPage() {
           Practices & Rituals
         </h2>
         
-        {/* Practices Image Placeholder */}
-        <div style={imagePlaceholder}>
-          <div>
-            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold' }}>🎨 AI Art Placeholder</p>
-            <p style={{ margin: 0, fontSize: '0.8rem' }}>
-              Replace with: /public/images/stellar-practices.jpg<br/>
-              Suggested: People in meditation under starry sky
-            </p>
-          </div>
-        </div>
         
         <div style={{ backgroundColor: 'rgba(35, 67, 107, 0.7)', padding: '24px', borderRadius: '8px', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
           <ul style={{ lineHeight: '1.8', paddingLeft: '20px' }}>
@@ -186,13 +117,6 @@ export default function ReligionPage() {
         </div>
       </section>
       
-      <div style={{ textAlign: 'center', marginTop: '48px', padding: '24px', backgroundColor: 'rgba(35, 67, 107, 0.7)', borderRadius: '8px', backdropFilter: 'blur(5px)', border: '1px solid rgba(244, 208, 63, 0.3)' }}>
-        <h3 style={{ color: '#f4d03f', marginBottom: '16px' }}>Ready to Add Your AI Art?</h3>
-        <p style={{ color: '#a8c8ec', fontSize: '0.9rem', lineHeight: '1.6' }}>
-          Save your AI-generated images to <code>/public/images/</code> and they'll be accessible at <code>/images/filename.jpg</code><br/>
-          Then replace the placeholder divs with: <code>&lt;img src="/images/filename.jpg" alt="description" /&gt;</code>
-        </p>
-      </div>
       
       <Link href="/home" style={{ 
         display: 'inline-block', 
