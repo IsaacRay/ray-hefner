@@ -333,7 +333,7 @@ export default function PackingManagePage() {
               {item.description && (
                 <div style={{ 
                   fontSize: '0.9em', 
-                  color: '#666',
+                  color: '#555',
                   marginBottom: '5px'
                 }}>
                   {item.description}
@@ -352,7 +352,7 @@ export default function PackingManagePage() {
               {item.templates && item.templates.length > 0 && (
                 <div style={{ 
                   fontSize: '0.8em', 
-                  color: '#6c757d',
+                  color: '#495057',
                   fontWeight: '500'
                 }}>
                   Templates: {item.templates.map(t => t.replace('_', ' ')).join(', ')}

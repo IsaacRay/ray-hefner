@@ -54,18 +54,26 @@ export default function PackingPage() {
 
   const togglePacked = async (id, currentStatus) => {
     try {
-      const response = await fetch('/api/packing', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id, packed: !currentStatus }),
-      });
+      // Check if this is a temporary item (from loaded trip) or database item
+      const item = items.find(item => item.id === id);
+      const isTemporaryItem = typeof id === 'number' && id > 1000000000000; // Temporary IDs are large timestamps
+      
+      if (!isTemporaryItem) {
+        // Only make API call for database items
+        const response = await fetch('/api/packing', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id, packed: !currentStatus }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to update item');
+        if (!response.ok) {
+          throw new Error('Failed to update item');
+        }
       }
 
+      // Update local state for both temporary and database items
       setItems(items.map(item => 
         item.id === id ? { ...item, packed: !currentStatus } : item
       ));
@@ -168,6 +176,26 @@ export default function PackingPage() {
     }
   };
 
+  const deleteTrip = async (tripId, tripName) => {
+    if (!confirm(`Are you sure you want to delete the trip "${tripName}"?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/packing/trip?id=${tripId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete trip');
+      }
+
+      fetchSavedTrips();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const packedCount = items.filter(item => item.packed).length;
   const totalCount = items.length;
 
@@ -186,7 +214,7 @@ export default function PackingPage() {
           {selectedTemplate && (
             <span style={{ 
               fontSize: '0.6em', 
-              color: '#6c757d', 
+              color: '#495057', 
               marginLeft: '10px',
               fontWeight: 'normal'
             }}>
@@ -293,7 +321,7 @@ export default function PackingPage() {
         }}>
           <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Select Trip Template</h3>
           
-          <h4 style={{ marginBottom: '10px', color: '#666' }}>Standard Templates</h4>
+          <h4 style={{ marginBottom: '10px', color: '#333' }}>Standard Templates</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
             {availableTemplates.map(template => (
               <button
@@ -316,24 +344,40 @@ export default function PackingPage() {
 
           {savedTrips.length > 0 && (
             <>
-              <h4 style={{ marginBottom: '10px', color: '#666' }}>Saved Trips</h4>
+              <h4 style={{ marginBottom: '10px', color: '#333' }}>Saved Trips</h4>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {savedTrips.map(trip => (
-                  <button
-                    key={trip.id}
-                    onClick={() => loadTrip(trip)}
-                    style={{
-                      padding: '10px 15px',
-                      backgroundColor: '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      fontSize: '0.9em'
-                    }}
-                  >
-                    {trip.name}
-                  </button>
+                  <div key={trip.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <button
+                      onClick={() => loadTrip(trip)}
+                      style={{
+                        padding: '10px 15px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '0.9em'
+                      }}
+                    >
+                      {trip.name}
+                    </button>
+                    <button
+                      onClick={() => deleteTrip(trip.id, trip.name)}
+                      style={{
+                        padding: '8px 10px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontSize: '0.8em'
+                      }}
+                      title={`Delete ${trip.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
             </>
@@ -505,7 +549,7 @@ export default function PackingPage() {
       )}
       
       {items.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#666' }}>
+        <p style={{ textAlign: 'center', color: '#333' }}>
           No packing items found.
         </p>
       ) : (
@@ -552,7 +596,7 @@ export default function PackingPage() {
                 {item.description && (
                   <div style={{ 
                     fontSize: '0.9em', 
-                    color: '#666' 
+                    color: '#555' 
                   }}>
                     {item.description}
                   </div>
