@@ -156,7 +156,7 @@ export function FamilyRoomLight() {
     const [textFieldValue, setTextFieldValue] = useState('');
     return (
     <>
-    <input type="text" id="other" value={textFieldValue} onChange={(e) => setTextFieldValue(e.target.value)}></input>
+    <input type="text" id="other" value={textFieldValue} onChange={(e) => setTextFieldValue(e.target.value)} style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', color: '#333' }}></input>
     <Button variant="info" onClick={() => webhook("groceries", `${textFieldValue}`)}>Other</Button>
     </>
     )

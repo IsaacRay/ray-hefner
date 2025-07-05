@@ -635,7 +635,8 @@ export default function PackingPage() {
                     minWidth: '30px', 
                     textAlign: 'center',
                     fontSize: '0.9em',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    color: '#333'
                   }}>
                     {item.quantity || 1}
                   </span>

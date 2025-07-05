@@ -266,7 +266,7 @@ export default function SquaresPage() {
                               ? occupant === session.user.email
                                 ? '#4181e0'
                                 : '#eb5468'
-                              : '#41e06c',
+                              : '#28a745',
                             color: '#fff',
                           }}
                         >
