@@ -152,6 +152,12 @@ export default function Home() {
                 onMouseLeave={(e) => Object.assign(e.target.style, buttonStyle)}>
             💰 Allowance
           </Link>
+          
+          <Link href="/packing" style={buttonStyle}
+                onMouseEnter={(e) => Object.assign(e.target.style, buttonHoverStyle)}
+                onMouseLeave={(e) => Object.assign(e.target.style, buttonStyle)}>
+            🧳 Packing
+          </Link>
         </div>
       </section>
     </div>
