@@ -19,8 +19,17 @@ export default function PackingPage() {
   const availableTemplates = ['camping', 'beach', 'holidays', 'business', 'road_trip', 'international'];
 
   useEffect(() => {
-    fetchSavedTrips();
-    // Start with empty list instead of loading all items
+    const initializePage = async () => {
+      try {
+        await fetchSavedTrips();
+      } catch (error) {
+        console.error('Error initializing page:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializePage();
   }, []);
 
   const fetchPackingItems = async () => {
