@@ -1008,7 +1008,7 @@ export default function PackingManagePage() {
                     opacity: isDragging && draggedItem?.id === item.id ? 0.5 : 1
                   }}
                 >
-                  <span style={{ fontWeight: 'bold' }}>{item.name}</span>
+                  <span style={{ fontWeight: 'bold', "color":"darkgray" }}>{item.name}</span>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                       onClick={() => handleEdit(item)}
