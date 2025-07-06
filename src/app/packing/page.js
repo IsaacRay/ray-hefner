@@ -7,24 +7,13 @@ export default function PackingPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItemName, setNewItemName] = useState('');
-  // Removed description and category fields
-  const [tripName, setTripName] = useState('');
-  const [showSaveTrip, setShowSaveTrip] = useState(false);
-  const [savedTrips, setSavedTrips] = useState([]);
   const [pinnedTrip, setPinnedTrip] = useState(null);
-  const [showPinTrip, setShowPinTrip] = useState(false);
-  const [pinnedTripName, setPinnedTripName] = useState('');
-
-  const availableTemplates = ['camping', 'beach', 'holidays', 'business', 'road_trip', 'international'];
 
   useEffect(() => {
     const initializePage = async () => {
       try {
-        await fetchSavedTrips();
         loadPinnedTrip();
       } catch (error) {
         console.error('Error initializing page:', error);
@@ -34,6 +23,28 @@ export default function PackingPage() {
     };
     
     initializePage();
+
+    // Listen for localStorage changes to sync with manage page
+    const handleStorageChange = (e) => {
+      if (e.key === 'pinnedTrip') {
+        loadPinnedTrip();
+      }
+    };
+
+    // Listen for custom events for same-page communication
+    const handlePinnedTripUpdate = (e) => {
+      const updatedTrip = e.detail;
+      setPinnedTrip(updatedTrip);
+      setItems(updatedTrip.items);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('pinnedTripUpdated', handlePinnedTripUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('pinnedTripUpdated', handlePinnedTripUpdate);
+    };
   }, []);
 
   const fetchPackingItems = async () => {
@@ -51,18 +62,6 @@ export default function PackingPage() {
     }
   };
 
-  const fetchSavedTrips = async () => {
-    try {
-      const response = await fetch('/api/packing/trip');
-      if (!response.ok) {
-        throw new Error('Failed to fetch saved trips');
-      }
-      const data = await response.json();
-      setSavedTrips(data);
-    } catch (err) {
-      console.error('Error fetching saved trips:', err);
-    }
-  };
 
   const togglePacked = async (id, currentStatus) => {
     try {
@@ -89,84 +88,17 @@ export default function PackingPage() {
       const updatedItems = items.map(item => 
         item.id === id ? { ...item, packed: !currentStatus } : item
       );
-      setItems(updatedItems);
+      // Sort items alphabetically
+      const sortedItems = updatedItems.sort((a, b) => a.name.localeCompare(b.name));
+      setItems(sortedItems);
       if (pinnedTrip) {
-        updatePinnedTrip(updatedItems);
+        updatePinnedTrip(sortedItems);
       }
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const loadTemplate = async (template) => {
-    try {
-      const response = await fetch(`/api/packing/template?template=${template}`);
-      if (!response.ok) {
-        throw new Error('Failed to load template');
-      }
-      const data = await response.json();
-      setItems(data);
-      setShowTemplateSelector(false);
-      setSelectedTemplate(template);
-      if (pinnedTrip) {
-        updatePinnedTrip(data);
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const loadTrip = async (trip) => {
-    try {
-      const itemsWithIds = trip.items.map(item => ({
-        ...item,
-        id: Date.now() + Math.random(),
-        packed: false
-      }));
-      setItems(itemsWithIds);
-      setShowTemplateSelector(false);
-      setSelectedTemplate(trip.name);
-      if (pinnedTrip) {
-        updatePinnedTrip(itemsWithIds);
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const pinExistingTrip = async (trip) => {
-    try {
-      const itemsWithIds = trip.items.map(item => ({
-        ...item,
-        id: Date.now() + Math.random(),
-        packed: false
-      }));
-      
-      const tripData = {
-        id: trip.id,
-        name: trip.name,
-        items: itemsWithIds,
-        pinnedAt: new Date().toISOString()
-      };
-      
-      localStorage.setItem('pinnedTrip', JSON.stringify(tripData));
-      setPinnedTrip(tripData);
-      setItems(itemsWithIds);
-      setShowTemplateSelector(false);
-      setSelectedTemplate(trip.name);
-    } catch (error) {
-      console.error('Error pinning existing trip:', error);
-      setError('Failed to pin trip');
-    }
-  };
-
-  const clearList = () => {
-    setItems([]);
-    setSelectedTemplate('');
-    if (pinnedTrip) {
-      updatePinnedTrip([]);
-    }
-  };
 
   const addAdHocItem = async () => {
     if (!newItemName.trim()) return;
@@ -175,10 +107,6 @@ export default function PackingPage() {
       // Always save the item to the database permanently
       const templates = [];
       
-      // If there's a pinned trip and a selected template that matches available templates, add template association
-      if (pinnedTrip && selectedTemplate && availableTemplates.includes(selectedTemplate)) {
-        templates.push(selectedTemplate);
-      }
       
       const response = await fetch('/api/packing', {
         method: 'POST',
@@ -203,12 +131,14 @@ export default function PackingPage() {
       };
       
       const updatedItems = [...items, newItem];
-      setItems(updatedItems);
+      // Sort items alphabetically
+      const sortedItems = updatedItems.sort((a, b) => a.name.localeCompare(b.name));
+      setItems(sortedItems);
       setNewItemName('');
       setShowAddItem(false);
       
       if (pinnedTrip) {
-        updatePinnedTrip(updatedItems);
+        updatePinnedTrip(sortedItems);
       }
     } catch (err) {
       setError(err.message);
@@ -219,135 +149,47 @@ export default function PackingPage() {
     const updatedItems = items.map(item => 
       item.id === id ? { ...item, quantity: Math.max(1, (item.quantity || 1) + delta) } : item
     );
-    setItems(updatedItems);
+    // Sort items alphabetically
+    const sortedItems = updatedItems.sort((a, b) => a.name.localeCompare(b.name));
+    setItems(sortedItems);
     if (pinnedTrip) {
-      updatePinnedTrip(updatedItems);
+      updatePinnedTrip(sortedItems);
     }
   };
 
   const deleteItem = (id) => {
     const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
+    // Sort items alphabetically (though removing doesn't change order)
+    const sortedItems = updatedItems.sort((a, b) => a.name.localeCompare(b.name));
+    setItems(sortedItems);
     if (pinnedTrip) {
-      updatePinnedTrip(updatedItems);
+      updatePinnedTrip(sortedItems);
     }
   };
 
-  const saveAsTrip = async () => {
-    if (!tripName.trim()) return;
-    
-    try {
-      const response = await fetch('/api/packing/trip', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: tripName,
-          items: items.map(item => ({
-            name: item.name,
-            quantity: item.quantity || 1
-          }))
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save trip');
-      }
-
-      setTripName('');
-      setShowSaveTrip(false);
-      setError(null);
-      fetchSavedTrips();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const deleteTrip = async (tripId, tripName) => {
-    if (!confirm(`Are you sure you want to delete the trip "${tripName}"?`)) {
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/api/packing/trip?id=${tripId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete trip');
-      }
-
-      fetchSavedTrips();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const loadPinnedTrip = () => {
     try {
       const saved = localStorage.getItem('pinnedTrip');
       if (saved) {
         const tripData = JSON.parse(saved);
-        setPinnedTrip(tripData);
-        setItems(tripData.items);
-        setSelectedTemplate(tripData.name);
+        // Sort items alphabetically when loading
+        const sortedItems = (tripData.items || []).sort((a, b) => a.name.localeCompare(b.name));
+        const sortedTripData = { ...tripData, items: sortedItems };
+        setPinnedTrip(sortedTripData);
+        setItems(sortedItems);
       }
     } catch (error) {
       console.error('Error loading pinned trip:', error);
     }
   };
 
-  const pinCurrentTrip = async () => {
-    if (!pinnedTripName.trim()) return;
-    
-    try {
-      // First save the trip to the database
-      const response = await fetch('/api/packing/trip', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: pinnedTripName,
-          items: items.map(item => ({
-            name: item.name,
-            quantity: item.quantity || 1
-          }))
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save trip');
-      }
-
-      const savedTrip = await response.json();
-      
-      // Then pin it locally with the database ID
-      const tripData = {
-        id: savedTrip.id,
-        name: pinnedTripName,
-        items: items,
-        pinnedAt: new Date().toISOString()
-      };
-      
-      localStorage.setItem('pinnedTrip', JSON.stringify(tripData));
-      setPinnedTrip(tripData);
-      setPinnedTripName('');
-      setShowPinTrip(false);
-      
-      // Refresh saved trips list
-      await fetchSavedTrips();
-    } catch (error) {
-      console.error('Error pinning trip:', error);
-      setError('Failed to pin trip');
-    }
-  };
 
   const unpinTrip = () => {
     try {
       localStorage.removeItem('pinnedTrip');
       setPinnedTrip(null);
+      setItems([]);
     } catch (error) {
       console.error('Error unpinning trip:', error);
       setError('Failed to unpin trip');
@@ -365,6 +207,11 @@ export default function PackingPage() {
         // Update localStorage
         localStorage.setItem('pinnedTrip', JSON.stringify(updatedTrip));
         setPinnedTrip(updatedTrip);
+        
+        // Dispatch custom event for same-page communication
+        window.dispatchEvent(new CustomEvent('pinnedTripUpdated', { 
+          detail: updatedTrip 
+        }));
         
         // Update database trip template
         const response = await fetch('/api/packing/trip', {
@@ -391,6 +238,7 @@ export default function PackingPage() {
     }
   };
 
+
   const packedCount = items.filter(item => item.packed).length;
   const totalCount = items.length;
 
@@ -406,16 +254,6 @@ export default function PackingPage() {
           margin: 0
         }}>
           Packing List
-          {selectedTemplate && (
-            <span style={{ 
-              fontSize: '0.6em', 
-              color: '#495057', 
-              marginLeft: '10px',
-              fontWeight: 'normal'
-            }}>
-              ({selectedTemplate.replace('_', ' ')} trip)
-            </span>
-          )}
           {pinnedTrip && (
             <span style={{ 
               fontSize: '0.5em', 
@@ -443,37 +281,44 @@ export default function PackingPage() {
         </Link>
       </div>
 
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+
+      {/* Active Trip Display */}
+      {pinnedTrip && (
+        <div 
           style={{
-            padding: '10px 15px',
-            backgroundColor: '#28a745',
-            color: '#f8f9fa',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '0.9em'
+            marginBottom: '20px',
+            padding: '20px',
+            border: '2px solid #ffc107',
+            borderRadius: '8px',
+            backgroundColor: '#fff3cd'
           }}
         >
-          Load Template
-        </button>
-        {totalCount > 0 && (
-          <button
-            onClick={clearList}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#6c757d',
-              color: '#f8f9fa',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '0.9em'
-            }}
-          >
-            Clear List
-          </button>
-        )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>📌 Active Trip:</span>
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
+                {pinnedTrip.name}
+              </span>
+            </div>
+            <button
+              onClick={unpinTrip}
+              style={{
+                padding: '8px 12px',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.9em'
+              }}
+            >
+              Unpin
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <button
           onClick={() => setShowAddItem(!showAddItem)}
           style={{
@@ -488,44 +333,12 @@ export default function PackingPage() {
         >
           Add Item
         </button>
-        {totalCount > 0 && (
-          <button
-            onClick={() => setShowSaveTrip(!showSaveTrip)}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#dc3545',
-              color: '#f8f9fa',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '0.9em'
-            }}
-          >
-            Save as Trip
-          </button>
-        )}
-        {totalCount > 0 && !pinnedTrip && (
-          <button
-            onClick={() => setShowPinTrip(!showPinTrip)}
-            style={{
-              padding: '10px 15px',
-              backgroundColor: '#ffc107',
-              color: '#000',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '0.9em'
-            }}
-          >
-            📌 Pin Trip
-          </button>
-        )}
         {pinnedTrip && (
           <button
             onClick={unpinTrip}
             style={{
               padding: '10px 15px',
-              backgroundColor: '#6c757d',
+              backgroundColor: '#dc3545',
               color: '#f8f9fa',
               border: 'none',
               borderRadius: '5px',
@@ -538,109 +351,6 @@ export default function PackingPage() {
         )}
       </div>
 
-      {showTemplateSelector && (
-        <div style={{
-          backgroundColor: '#f8f9fa',
-          padding: '20px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #e9ecef'
-        }}>
-          <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#000' }}>Select Trip Template</h3>
-          
-          <h4 style={{ marginBottom: '10px', color: '#000' }}>Standard Templates</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-            {availableTemplates.map(template => (
-              <button
-                key={template}
-                onClick={() => loadTemplate(template)}
-                style={{
-                  padding: '10px 15px',
-                  backgroundColor: '#007bff',
-                  color: '#f8f9fa',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em'
-                }}
-              >
-                {template.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-
-          {savedTrips.length > 0 && (
-            <>
-              <h4 style={{ marginBottom: '10px', color: '#000' }}>Saved Trips</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                {savedTrips.map(trip => (
-                  <div key={trip.id} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <button
-                      onClick={() => loadTrip(trip)}
-                      style={{
-                        padding: '10px 15px',
-                        backgroundColor: '#28a745',
-                        color: '#f8f9fa',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '0.9em'
-                      }}
-                    >
-                      {trip.name}
-                    </button>
-                    {(!pinnedTrip || pinnedTrip.id !== trip.id) && (
-                      <button
-                        onClick={() => pinExistingTrip(trip)}
-                        style={{
-                          padding: '8px 10px',
-                          backgroundColor: '#ffc107',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer',
-                          fontSize: '0.8em'
-                        }}
-                        title={`Pin ${trip.name}`}
-                      >
-                        📌
-                      </button>
-                    )}
-                    {pinnedTrip && pinnedTrip.id === trip.id && (
-                      <span style={{
-                        padding: '8px 10px',
-                        backgroundColor: '#fff3cd',
-                        color: '#000',
-                        border: '1px solid #ffeaa7',
-                        borderRadius: '3px',
-                        fontSize: '0.8em',
-                        fontWeight: 'bold'
-                      }}>
-                        PINNED
-                      </span>
-                    )}
-                    <button
-                      onClick={() => deleteTrip(trip.id, trip.name)}
-                      style={{
-                        padding: '8px 10px',
-                        backgroundColor: '#dc3545',
-                        color: '#f8f9fa',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                        fontSize: '0.8em'
-                      }}
-                      title={`Delete ${trip.name}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {showAddItem && (
         <div style={{
@@ -698,120 +408,6 @@ export default function PackingPage() {
         </div>
       )}
 
-      {showSaveTrip && (
-        <div style={{
-          backgroundColor: '#f8f9fa',
-          padding: '20px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #e9ecef'
-        }}>
-          <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#000' }}>Save as Trip Template</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input
-              type="text"
-              placeholder="Trip name (e.g., 'Vegas 2024')"
-              value={tripName}
-              onChange={(e) => setTripName(e.target.value)}
-              style={{
-                padding: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ddd',
-                fontSize: '0.9em'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={saveAsTrip}
-                style={{
-                  padding: '10px 15px',
-                  backgroundColor: '#007bff',
-                  color: '#f8f9fa',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em'
-                }}
-              >
-                Save Trip
-              </button>
-              <button
-                onClick={() => setShowSaveTrip(false)}
-                style={{
-                  padding: '10px 15px',
-                  backgroundColor: '#6c757d',
-                  color: '#f8f9fa',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em'
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPinTrip && (
-        <div style={{
-          backgroundColor: '#fff3cd',
-          padding: '20px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #ffeaa7'
-        }}>
-          <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#000' }}>📌 Pin Current Trip</h3>
-          <p style={{ marginBottom: '15px', fontSize: '0.9em', color: '#000' }}>
-            Pin this trip to keep it loaded across page visits. Perfect for packing over multiple sessions!
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input
-              type="text"
-              placeholder="Trip name (e.g., 'Weekend Getaway')"
-              value={pinnedTripName}
-              onChange={(e) => setPinnedTripName(e.target.value)}
-              style={{
-                padding: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ddd',
-                fontSize: '0.9em'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={pinCurrentTrip}
-                style={{
-                  padding: '10px 15px',
-                  backgroundColor: '#ffc107',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em'
-                }}
-              >
-                📌 Pin Trip
-              </button>
-              <button
-                onClick={() => setShowPinTrip(false)}
-                style={{
-                  padding: '10px 15px',
-                  backgroundColor: '#6c757d',
-                  color: '#f8f9fa',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em'
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {totalCount > 0 && (
         <div style={{
@@ -843,7 +439,7 @@ export default function PackingPage() {
       {items.length === 0 ? (
         <div style={{ textAlign: 'center', color: '#000', padding: '40px' }}>
           <h3>Start Your Packing List</h3>
-          <p>Begin with a blank list and add items individually, or load a template to get started.</p>
+          <p>Add items to get started, or visit the manage page to load templates and create trips.</p>
         </div>
       ) : (
         <div style={{ 

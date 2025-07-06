@@ -19,15 +19,85 @@ export default function PackingManagePage() {
   });
   const [draggedItem, setDraggedItem] = useState(null);
   const [draggedTemplate, setDraggedTemplate] = useState(null);
+  const [draggedSavedTrip, setDraggedSavedTrip] = useState(null);
   const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [showTemplateLoader, setShowTemplateLoader] = useState(false);
+  const [showTripSaver, setShowTripSaver] = useState(false);
+  const [showTripPinner, setShowTripPinner] = useState(false);
+  const [tripNameToSave, setTripNameToSave] = useState('');
+  const [tripNameToPin, setTripNameToPin] = useState('');
+  const [currentItems, setCurrentItems] = useState([]);
+  const [pinnedTrip, setPinnedTrip] = useState(null);
 
   const availableTemplates = ['camping', 'beach', 'holidays', 'business', 'road_trip', 'international'];
 
   useEffect(() => {
     fetchPackingItems();
     fetchSavedTrips();
+    loadPinnedTrip();
+    loadCurrentItems();
+
+    // Listen for localStorage changes to sync pinned trips
+    const handleStorageChange = (e) => {
+      if (e.key === 'pinnedTrip') {
+        loadPinnedTrip();
+        loadCurrentItems();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  const loadPinnedTrip = () => {
+    try {
+      const saved = localStorage.getItem('pinnedTrip');
+      if (saved) {
+        const tripData = JSON.parse(saved);
+        setPinnedTrip(tripData);
+        
+        // Sort items alphabetically and create active trip from pinned trip
+        const sortedItems = (tripData.items || []).sort((a, b) => a.name.localeCompare(b.name));
+        const pinnedActiveTrip = {
+          id: `pinned-${tripData.id}`,
+          name: tripData.name,
+          items: sortedItems.map(item => ({ ...item, id: item.id || Date.now() + Math.random() })),
+          isActive: true,
+          isPinned: true
+        };
+        
+        setActiveTrips(prevTrips => {
+          // Check if pinned trip already exists in active trips
+          const existingPinnedTrip = prevTrips.find(trip => trip.isPinned);
+          if (!existingPinnedTrip) {
+            return [pinnedActiveTrip, ...prevTrips];
+          }
+          // Update existing pinned trip
+          return prevTrips.map(trip => 
+            trip.isPinned ? pinnedActiveTrip : trip
+          );
+        });
+      } else {
+        // Remove pinned trip from active trips if no longer pinned
+        setActiveTrips(prevTrips => prevTrips.filter(trip => !trip.isPinned));
+      }
+    } catch (error) {
+      console.error('Error loading pinned trip:', error);
+    }
+  };
+
+  const loadCurrentItems = () => {
+    try {
+      const saved = localStorage.getItem('pinnedTrip');
+      if (saved) {
+        const tripData = JSON.parse(saved);
+        setCurrentItems(tripData.items || []);
+      }
+    } catch (error) {
+      console.error('Error loading current items:', error);
+    }
+  };
 
   const fetchPackingItems = async () => {
     try {
@@ -77,11 +147,44 @@ export default function PackingManagePage() {
   };
 
   const addItemToTrip = (tripId, item) => {
-    setActiveTrips(activeTrips.map(trip => 
-      trip.id === tripId 
-        ? { ...trip, items: [...trip.items, { ...item, id: Date.now() + Math.random() }] }
-        : trip
-    ));
+    setActiveTrips(prevTrips => {
+      const updatedTrips = prevTrips.map(trip => {
+        if (trip.id === tripId) {
+          const newItem = { ...item, id: Date.now() + Math.random() };
+          const allItems = [...trip.items, newItem];
+          // Sort items alphabetically
+          const sortedItems = allItems.sort((a, b) => a.name.localeCompare(b.name));
+          const updatedTrip = { ...trip, items: sortedItems };
+          
+          // If this is a pinned trip, update localStorage, database, and pinned trip state
+          if (trip.isPinned && pinnedTrip) {
+            const updatedPinnedTrip = {
+              ...pinnedTrip,
+              items: sortedItems
+            };
+            
+            localStorage.setItem('pinnedTrip', JSON.stringify(updatedPinnedTrip));
+            setPinnedTrip(updatedPinnedTrip);
+            setCurrentItems(sortedItems);
+            
+            // Update database trip template
+            updateSavedTripInDatabase(updatedPinnedTrip);
+            
+            // Refresh saved trips list to update item counts
+            fetchSavedTrips();
+            
+            // Dispatch custom event for same-page communication
+            window.dispatchEvent(new CustomEvent('pinnedTripUpdated', { 
+              detail: updatedPinnedTrip 
+            }));
+          }
+          
+          return updatedTrip;
+        }
+        return trip;
+      });
+      return updatedTrips;
+    });
   };
 
   const addTemplateToTrip = async (tripId, templateName) => {
@@ -92,22 +195,313 @@ export default function PackingManagePage() {
       }
       const templateItems = await response.json();
       
-      setActiveTrips(activeTrips.map(trip => 
-        trip.id === tripId 
-          ? { ...trip, items: [...trip.items, ...templateItems.map(item => ({ ...item, id: Date.now() + Math.random() }))] }
-          : trip
-      ));
+      setActiveTrips(prevTrips => {
+        const updatedTrips = prevTrips.map(trip => {
+          if (trip.id === tripId) {
+            const newItems = templateItems.map(item => ({ ...item, id: Date.now() + Math.random() }));
+            const allItems = [...trip.items, ...newItems];
+            // Sort items alphabetically
+            const sortedItems = allItems.sort((a, b) => a.name.localeCompare(b.name));
+            const updatedTrip = { ...trip, items: sortedItems };
+            
+            // If this is a pinned trip, update localStorage, database, and pinned trip state
+            if (trip.isPinned && pinnedTrip) {
+              const updatedPinnedTrip = {
+                ...pinnedTrip,
+                items: sortedItems
+              };
+              
+              localStorage.setItem('pinnedTrip', JSON.stringify(updatedPinnedTrip));
+              setPinnedTrip(updatedPinnedTrip);
+              setCurrentItems(sortedItems);
+              
+              // Update database trip template
+              updateSavedTripInDatabase(updatedPinnedTrip);
+              
+              // Dispatch custom event for same-page communication
+              window.dispatchEvent(new CustomEvent('pinnedTripUpdated', { 
+                detail: updatedPinnedTrip 
+              }));
+            }
+            
+            return updatedTrip;
+          }
+          return trip;
+        });
+        return updatedTrips;
+      });
     } catch (err) {
       setError(err.message);
     }
   };
 
   const addSavedTripToTrip = (tripId, savedTrip) => {
-    setActiveTrips(activeTrips.map(trip => 
-      trip.id === tripId 
-        ? { ...trip, items: [...trip.items, ...savedTrip.items.map(item => ({ ...item, id: Date.now() + Math.random() }))] }
-        : trip
-    ));
+    setActiveTrips(prevTrips => {
+      const updatedTrips = prevTrips.map(trip => {
+        if (trip.id === tripId) {
+          const newItems = savedTrip.items.map(item => ({ ...item, id: Date.now() + Math.random() }));
+          const allItems = [...trip.items, ...newItems];
+          // Sort items alphabetically
+          const sortedItems = allItems.sort((a, b) => a.name.localeCompare(b.name));
+          const updatedTrip = { ...trip, items: sortedItems };
+          
+          // If this is a pinned trip, update localStorage, database, and pinned trip state
+          if (trip.isPinned && pinnedTrip) {
+            const updatedPinnedTrip = {
+              ...pinnedTrip,
+              items: sortedItems
+            };
+            
+            localStorage.setItem('pinnedTrip', JSON.stringify(updatedPinnedTrip));
+            setPinnedTrip(updatedPinnedTrip);
+            setCurrentItems(sortedItems);
+            
+            // Update database trip template
+            updateSavedTripInDatabase(updatedPinnedTrip);
+            
+            // Refresh saved trips list to update item counts
+            fetchSavedTrips();
+            
+            // Dispatch custom event for same-page communication
+            window.dispatchEvent(new CustomEvent('pinnedTripUpdated', { 
+              detail: updatedPinnedTrip 
+            }));
+          }
+          
+          return updatedTrip;
+        }
+        return trip;
+      });
+      return updatedTrips;
+    });
+  };
+
+  const convertSavedTripToActiveTrip = async (savedTrip) => {
+    const newActiveTrip = {
+      id: Date.now(),
+      name: savedTrip.name,
+      items: savedTrip.items.map(item => ({ ...item, id: Date.now() + Math.random() })),
+      isActive: true
+    };
+    
+    setActiveTrips([...activeTrips, newActiveTrip]);
+    
+    // Also autopin the trip in the main packing list
+    try {
+      const itemsWithIds = savedTrip.items.map(item => ({
+        ...item,
+        id: Date.now() + Math.random(),
+        packed: false
+      }));
+      
+      const tripData = {
+        id: savedTrip.id,
+        name: savedTrip.name,
+        items: itemsWithIds,
+        pinnedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('pinnedTrip', JSON.stringify(tripData));
+      setPinnedTrip(tripData);
+      setCurrentItems(itemsWithIds);
+    } catch (error) {
+      console.error('Error autopinning trip:', error);
+    }
+  };
+
+  const loadTemplateToCurrentList = async (template) => {
+    try {
+      const response = await fetch(`/api/packing/template?template=${template}`);
+      if (!response.ok) {
+        throw new Error('Failed to load template');
+      }
+      const data = await response.json();
+      setCurrentItems(data);
+      setShowTemplateLoader(false);
+      
+      // Update pinned trip if exists
+      if (pinnedTrip) {
+        const updatedTrip = {
+          ...pinnedTrip,
+          items: data
+        };
+        localStorage.setItem('pinnedTrip', JSON.stringify(updatedTrip));
+        setPinnedTrip(updatedTrip);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const loadSavedTripToCurrentList = async (trip) => {
+    try {
+      const itemsWithIds = trip.items.map(item => ({
+        ...item,
+        id: Date.now() + Math.random(),
+        packed: false
+      }));
+      setCurrentItems(itemsWithIds);
+      setShowTemplateLoader(false);
+      
+      // Update pinned trip if exists
+      if (pinnedTrip) {
+        const updatedTrip = {
+          ...pinnedTrip,
+          items: itemsWithIds
+        };
+        localStorage.setItem('pinnedTrip', JSON.stringify(updatedTrip));
+        setPinnedTrip(updatedTrip);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const saveCurrentListAsTrip = async () => {
+    if (!tripNameToSave.trim()) return;
+    
+    try {
+      const response = await fetch('/api/packing/trip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: tripNameToSave,
+          items: currentItems.map(item => ({
+            name: item.name,
+            quantity: item.quantity || 1
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save trip');
+      }
+
+      setTripNameToSave('');
+      setShowTripSaver(false);
+      setError(null);
+      fetchSavedTrips();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const pinCurrentList = async () => {
+    if (!tripNameToPin.trim()) return;
+    
+    try {
+      // First save the trip to the database
+      const response = await fetch('/api/packing/trip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: tripNameToPin,
+          items: currentItems.map(item => ({
+            name: item.name,
+            quantity: item.quantity || 1
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save trip');
+      }
+
+      const savedTrip = await response.json();
+      
+      // Then pin it locally with the database ID
+      const tripData = {
+        id: savedTrip.id,
+        name: tripNameToPin,
+        items: currentItems,
+        pinnedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('pinnedTrip', JSON.stringify(tripData));
+      setPinnedTrip(tripData);
+      setTripNameToPin('');
+      setShowTripPinner(false);
+      
+      // Refresh saved trips list
+      await fetchSavedTrips();
+    } catch (error) {
+      console.error('Error pinning trip:', error);
+      setError('Failed to pin trip');
+    }
+  };
+
+  const unpinTrip = () => {
+    try {
+      localStorage.removeItem('pinnedTrip');
+      setPinnedTrip(null);
+      setCurrentItems([]);
+      // Remove pinned trip from active trips
+      setActiveTrips(prevTrips => prevTrips.filter(trip => !trip.isPinned));
+    } catch (error) {
+      console.error('Error unpinning trip:', error);
+      setError('Failed to unpin trip');
+    }
+  };
+
+  const clearCurrentList = () => {
+    setCurrentItems([]);
+    if (pinnedTrip) {
+      const updatedTrip = {
+        ...pinnedTrip,
+        items: []
+      };
+      localStorage.setItem('pinnedTrip', JSON.stringify(updatedTrip));
+      setPinnedTrip(updatedTrip);
+    }
+  };
+
+  const deleteSavedTrip = async (tripId, tripName) => {
+    if (!confirm(`Are you sure you want to delete the trip "${tripName}"?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/packing/trip?id=${tripId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete trip');
+      }
+
+      fetchSavedTrips();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const updateSavedTripInDatabase = async (tripData) => {
+    try {
+      const response = await fetch('/api/packing/trip', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: tripData.id,
+          name: tripData.name,
+          items: tripData.items.map(item => ({
+            name: item.name,
+            quantity: item.quantity || 1
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to update trip template in database');
+      }
+    } catch (error) {
+      console.error('Error updating saved trip in database:', error);
+    }
   };
 
   const handleDragStart = (e, item, type) => {
@@ -116,6 +510,9 @@ export default function PackingManagePage() {
       e.dataTransfer.effectAllowed = 'copy';
     } else if (type === 'template') {
       setDraggedTemplate(item);
+      e.dataTransfer.effectAllowed = 'copy';
+    } else if (type === 'savedTrip') {
+      setDraggedSavedTrip(item);
       e.dataTransfer.effectAllowed = 'copy';
     }
   };
@@ -129,6 +526,8 @@ export default function PackingManagePage() {
       setDraggedItem(item);
     } else if (type === 'template') {
       setDraggedTemplate(item);
+    } else if (type === 'savedTrip') {
+      setDraggedSavedTrip(item);
     }
   };
 
@@ -143,9 +542,9 @@ export default function PackingManagePage() {
     const touch = e.changedTouches[0];
     const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
     
-    // Find the closest trip container
+    // Find the closest trip container or active trips section
     let tripContainer = elementBelow;
-    while (tripContainer && !tripContainer.dataset.tripId) {
+    while (tripContainer && !tripContainer.dataset.tripId && !tripContainer.dataset.dropZone) {
       tripContainer = tripContainer.parentElement;
     }
     
@@ -162,12 +561,22 @@ export default function PackingManagePage() {
           addSavedTripToTrip(tripId, draggedTemplate);
         }
         setDraggedTemplate(null);
+      } else if (draggedSavedTrip) {
+        addSavedTripToTrip(tripId, draggedSavedTrip);
+        setDraggedSavedTrip(null);
+      }
+    } else if (tripContainer && tripContainer.dataset.dropZone === 'active-trips') {
+      // Handle drop onto Active Trips section
+      if (draggedSavedTrip) {
+        convertSavedTripToActiveTrip(draggedSavedTrip);
+        setDraggedSavedTrip(null);
       }
     }
     
     setIsDragging(false);
     setDraggedItem(null);
     setDraggedTemplate(null);
+    setDraggedSavedTrip(null);
   };
 
   const handleDragOver = (e) => {
@@ -188,15 +597,59 @@ export default function PackingManagePage() {
         addSavedTripToTrip(tripId, draggedTemplate);
       }
       setDraggedTemplate(null);
+    } else if (draggedSavedTrip) {
+      addSavedTripToTrip(tripId, draggedSavedTrip);
+      setDraggedSavedTrip(null);
+    }
+  };
+
+  const handleDropToActiveTrips = (e) => {
+    e.preventDefault();
+    
+    if (draggedSavedTrip) {
+      convertSavedTripToActiveTrip(draggedSavedTrip);
+      setDraggedSavedTrip(null);
     }
   };
 
   const removeItemFromTrip = (tripId, itemId) => {
-    setActiveTrips(activeTrips.map(trip => 
-      trip.id === tripId 
-        ? { ...trip, items: trip.items.filter(item => item.id !== itemId) }
-        : trip
-    ));
+    setActiveTrips(prevTrips => {
+      const updatedTrips = prevTrips.map(trip => {
+        if (trip.id === tripId) {
+          const filteredItems = trip.items.filter(item => item.id !== itemId);
+          // Sort items alphabetically (though removing doesn't change order)
+          const sortedItems = filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+          const updatedTrip = { ...trip, items: sortedItems };
+          
+          // If this is a pinned trip, update localStorage, database, and pinned trip state
+          if (trip.isPinned && pinnedTrip) {
+            const updatedPinnedTrip = {
+              ...pinnedTrip,
+              items: sortedItems
+            };
+            
+            localStorage.setItem('pinnedTrip', JSON.stringify(updatedPinnedTrip));
+            setPinnedTrip(updatedPinnedTrip);
+            setCurrentItems(sortedItems);
+            
+            // Update database trip template
+            updateSavedTripInDatabase(updatedPinnedTrip);
+            
+            // Refresh saved trips list to update item counts
+            fetchSavedTrips();
+            
+            // Dispatch custom event for same-page communication
+            window.dispatchEvent(new CustomEvent('pinnedTripUpdated', { 
+              detail: updatedPinnedTrip 
+            }));
+          }
+          
+          return updatedTrip;
+        }
+        return trip;
+      });
+      return updatedTrips;
+    });
   };
 
   const saveTripTemplate = async (trip) => {
@@ -328,6 +781,20 @@ export default function PackingManagePage() {
           margin: 0
         }}>
           Trip Planning & Item Management
+          {pinnedTrip && (
+            <span style={{ 
+              fontSize: '0.5em', 
+              color: '#000', 
+              marginLeft: '10px',
+              fontWeight: 'bold',
+              backgroundColor: '#fff3cd',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              border: '1px solid #ffeaa7'
+            }}>
+              📌 PINNED: {pinnedTrip.name}
+            </span>
+          )}
         </h1>
         <Link href="/packing" style={{
           padding: '10px 15px',
@@ -340,6 +807,7 @@ export default function PackingManagePage() {
           Back to Packing List
         </Link>
       </div>
+
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
         
@@ -464,26 +932,51 @@ export default function PackingManagePage() {
                 {savedTrips.map(trip => (
                   <div
                     key={trip.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, { ...trip, type: 'saved' }, 'template')}
-                    onTouchStart={(e) => handleTouchStart(e, { ...trip, type: 'saved' }, 'template')}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
                     style={{
                       padding: '15px',
                       backgroundColor: '#e8f5e8',
                       borderRadius: '8px',
                       border: '2px solid #4caf50',
-                      cursor: 'grab',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      touchAction: 'none',
-                      opacity: isDragging && (draggedTemplate?.id === trip.id && draggedTemplate?.type === 'saved') ? 0.5 : 1
+                      opacity: isDragging && (draggedSavedTrip?.id === trip.id) ? 0.5 : 1
                     }}
                   >
-                    <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
-                    <span style={{ fontSize: '0.9em', color: '#333' }}>💾 Saved ({trip.items.length} items)</span>
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, trip, 'savedTrip')}
+                      onTouchStart={(e) => handleTouchStart(e, trip, 'savedTrip')}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      style={{
+                        cursor: 'grab',
+                        touchAction: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flex: 1
+                      }}
+                    >
+                      <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
+                      <span style={{ fontSize: '0.9em', color: '#333' }}>💾 Saved ({trip.items.length} items)</span>
+                    </div>
+                    <button
+                      onClick={() => deleteSavedTrip(trip.id, trip.name)}
+                      style={{
+                        padding: '8px 10px',
+                        backgroundColor: '#dc3545',
+                        color: '#f8f9fa',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.8em',
+                        marginLeft: '10px'
+                      }}
+                      title={`Delete ${trip.name}`}
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
@@ -557,18 +1050,49 @@ export default function PackingManagePage() {
           <h2 style={{ fontSize: '1.5em', marginBottom: '20px', color: '#333' }}>Active Trips</h2>
           
           {activeTrips.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              color: '#333', 
-              padding: '40px',
-              border: '2px dashed #ccc',
-              borderRadius: '8px'
-            }}>
+            <div 
+              data-drop-zone="active-trips"
+              onDragOver={handleDragOver}
+              onDrop={handleDropToActiveTrips}
+              style={{ 
+                textAlign: 'center', 
+                color: '#333', 
+                padding: '40px',
+                border: isDragging && draggedSavedTrip ? '2px dashed #28a745' : '2px dashed #ccc',
+                borderRadius: '8px',
+                backgroundColor: isDragging && draggedSavedTrip ? '#e8f5e8' : 'transparent',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <h3>No Active Trips</h3>
               <p>Create a new trip to start planning!</p>
+              <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+                💡 Drag a saved trip here to convert it to an active trip and auto-pin it!
+              </p>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '20px' }}>
+              {/* Drop zone for creating new active trips */}
+              <div 
+                data-drop-zone="active-trips"
+                onDragOver={handleDragOver}
+                onDrop={handleDropToActiveTrips}
+                style={{ 
+                  textAlign: 'center', 
+                  color: '#333', 
+                  padding: '20px',
+                  border: isDragging && draggedSavedTrip ? '2px dashed #28a745' : '2px dashed #ccc',
+                  borderRadius: '8px',
+                  backgroundColor: isDragging && draggedSavedTrip ? '#e8f5e8' : '#f8f9fa',
+                  transition: 'all 0.2s ease',
+                  fontSize: '0.9em'
+                }}
+              >
+                <span style={{ color: '#666' }}>
+                  💡 Drag a saved trip here to create a new active trip and auto-pin it!
+                </span>
+              </div>
+              
               {activeTrips.map(trip => (
                 <div
                   key={trip.id}
@@ -585,36 +1109,70 @@ export default function PackingManagePage() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3 style={{ margin: 0, color: '#333' }}>{trip.name}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>{trip.name}</h3>
+                      {trip.isPinned && (
+                        <span style={{ 
+                          fontSize: '0.8em', 
+                          color: '#000', 
+                          fontWeight: 'bold',
+                          backgroundColor: '#fff3cd',
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          border: '1px solid #ffeaa7'
+                        }}>
+                          📌 PINNED
+                        </span>
+                      )}
+                    </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button
-                        onClick={() => saveTripTemplate(trip)}
-                        style={{
-                          padding: '8px 15px',
-                          backgroundColor: '#28a745',
-                          color: '#f8f9fa',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.9em'
-                        }}
-                      >
-                        Save Template
-                      </button>
-                      <button
-                        onClick={() => deleteActiveTrip(trip.id)}
-                        style={{
-                          padding: '8px 15px',
-                          backgroundColor: '#dc3545',
-                          color: '#f8f9fa',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.9em'
-                        }}
-                      >
-                        Delete
-                      </button>
+                      {!trip.isPinned && (
+                        <button
+                          onClick={() => saveTripTemplate(trip)}
+                          style={{
+                            padding: '8px 15px',
+                            backgroundColor: '#28a745',
+                            color: '#f8f9fa',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.9em'
+                          }}
+                        >
+                          Save Template
+                        </button>
+                      )}
+                      {trip.isPinned ? (
+                        <button
+                          onClick={unpinTrip}
+                          style={{
+                            padding: '8px 15px',
+                            backgroundColor: '#dc3545',
+                            color: '#f8f9fa',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.9em'
+                          }}
+                        >
+                          Unpin
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => deleteActiveTrip(trip.id)}
+                          style={{
+                            padding: '8px 15px',
+                            backgroundColor: '#dc3545',
+                            color: '#f8f9fa',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.9em'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                   
