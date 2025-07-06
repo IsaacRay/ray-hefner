@@ -19,6 +19,8 @@ export default function PackingManagePage() {
   });
   const [draggedItem, setDraggedItem] = useState(null);
   const [draggedTemplate, setDraggedTemplate] = useState(null);
+  const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
   const availableTemplates = ['camping', 'beach', 'holidays', 'business', 'road_trip', 'international'];
 
@@ -116,6 +118,56 @@ export default function PackingManagePage() {
       setDraggedTemplate(item);
       e.dataTransfer.effectAllowed = 'copy';
     }
+  };
+
+  const handleTouchStart = (e, item, type) => {
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setIsDragging(true);
+    
+    if (type === 'item') {
+      setDraggedItem(item);
+    } else if (type === 'template') {
+      setDraggedTemplate(item);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault(); // Prevent scrolling while dragging
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!isDragging) return;
+    
+    const touch = e.changedTouches[0];
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    // Find the closest trip container
+    let tripContainer = elementBelow;
+    while (tripContainer && !tripContainer.dataset.tripId) {
+      tripContainer = tripContainer.parentElement;
+    }
+    
+    if (tripContainer && tripContainer.dataset.tripId) {
+      const tripId = parseInt(tripContainer.dataset.tripId);
+      
+      if (draggedItem) {
+        addItemToTrip(tripId, draggedItem);
+        setDraggedItem(null);
+      } else if (draggedTemplate) {
+        if (draggedTemplate.type === 'standard') {
+          addTemplateToTrip(tripId, draggedTemplate.name);
+        } else if (draggedTemplate.type === 'saved') {
+          addSavedTripToTrip(tripId, draggedTemplate);
+        }
+        setDraggedTemplate(null);
+      }
+    }
+    
+    setIsDragging(false);
+    setDraggedItem(null);
+    setDraggedTemplate(null);
   };
 
   const handleDragOver = (e) => {
@@ -280,7 +332,7 @@ export default function PackingManagePage() {
         <Link href="/packing" style={{
           padding: '10px 15px',
           backgroundColor: '#6c757d',
-          color: 'white',
+          color: '#f8f9fa',
           textDecoration: 'none',
           borderRadius: '5px',
           fontSize: '0.9em'
@@ -303,7 +355,7 @@ export default function PackingManagePage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#007bff',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer'
@@ -316,7 +368,7 @@ export default function PackingManagePage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#28a745',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer'
@@ -346,7 +398,7 @@ export default function PackingManagePage() {
                   style={{
                     padding: '8px 15px',
                     backgroundColor: '#007bff',
-                    color: 'white',
+                    color: '#f8f9fa',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
@@ -360,7 +412,7 @@ export default function PackingManagePage() {
                   style={{
                     padding: '8px 15px',
                     backgroundColor: '#6c757d',
-                    color: 'white',
+                    color: '#f8f9fa',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer'
@@ -381,6 +433,9 @@ export default function PackingManagePage() {
                   key={template}
                   draggable
                   onDragStart={(e) => handleDragStart(e, { name: template, type: 'standard' }, 'template')}
+                  onTouchStart={(e) => handleTouchStart(e, { name: template, type: 'standard' }, 'template')}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   style={{
                     padding: '15px',
                     backgroundColor: '#e3f2fd',
@@ -389,7 +444,9 @@ export default function PackingManagePage() {
                     cursor: 'grab',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    touchAction: 'none',
+                    opacity: isDragging && (draggedTemplate?.name === template && draggedTemplate?.type === 'standard') ? 0.5 : 1
                   }}
                 >
                   <span style={{ fontWeight: 'bold' }}>{template.replace('_', ' ')}</span>
@@ -409,6 +466,9 @@ export default function PackingManagePage() {
                     key={trip.id}
                     draggable
                     onDragStart={(e) => handleDragStart(e, { ...trip, type: 'saved' }, 'template')}
+                    onTouchStart={(e) => handleTouchStart(e, { ...trip, type: 'saved' }, 'template')}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     style={{
                       padding: '15px',
                       backgroundColor: '#e8f5e8',
@@ -417,7 +477,9 @@ export default function PackingManagePage() {
                       cursor: 'grab',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between'
+                      justifyContent: 'space-between',
+                      touchAction: 'none',
+                      opacity: isDragging && (draggedTemplate?.id === trip.id && draggedTemplate?.type === 'saved') ? 0.5 : 1
                     }}
                   >
                     <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
@@ -437,6 +499,9 @@ export default function PackingManagePage() {
                   key={item.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, item, 'item')}
+                  onTouchStart={(e) => handleTouchStart(e, item, 'item')}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   style={{
                     padding: '15px',
                     backgroundColor: '#fff3e0',
@@ -445,7 +510,9 @@ export default function PackingManagePage() {
                     cursor: 'grab',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    touchAction: 'none',
+                    opacity: isDragging && draggedItem?.id === item.id ? 0.5 : 1
                   }}
                 >
                   <span style={{ fontWeight: 'bold' }}>{item.name}</span>
@@ -455,7 +522,7 @@ export default function PackingManagePage() {
                       style={{
                         padding: '5px 10px',
                         backgroundColor: '#007bff',
-                        color: 'white',
+                        color: '#f8f9fa',
                         border: 'none',
                         borderRadius: '3px',
                         cursor: 'pointer',
@@ -469,7 +536,7 @@ export default function PackingManagePage() {
                       style={{
                         padding: '5px 10px',
                         backgroundColor: '#dc3545',
-                        color: 'white',
+                        color: '#f8f9fa',
                         border: 'none',
                         borderRadius: '3px',
                         cursor: 'pointer',
@@ -505,14 +572,16 @@ export default function PackingManagePage() {
               {activeTrips.map(trip => (
                 <div
                   key={trip.id}
+                  data-trip-id={trip.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, trip.id)}
                   style={{
                     padding: '20px',
-                    backgroundColor: '#f8f9fa',
+                    backgroundColor: isDragging ? '#e8f5e8' : '#f8f9fa',
                     borderRadius: '8px',
-                    border: '2px solid #dee2e6',
-                    minHeight: '200px'
+                    border: isDragging ? '2px dashed #28a745' : '2px solid #dee2e6',
+                    minHeight: '200px',
+                    transition: 'all 0.2s ease'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -523,7 +592,7 @@ export default function PackingManagePage() {
                         style={{
                           padding: '8px 15px',
                           backgroundColor: '#28a745',
-                          color: 'white',
+                          color: '#f8f9fa',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
@@ -537,7 +606,7 @@ export default function PackingManagePage() {
                         style={{
                           padding: '8px 15px',
                           backgroundColor: '#dc3545',
-                          color: 'white',
+                          color: '#f8f9fa',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
@@ -549,13 +618,15 @@ export default function PackingManagePage() {
                     </div>
                   </div>
                   
-                  <div style={{ 
-                    minHeight: '100px',
-                    border: '2px dashed #6c757d',
-                    borderRadius: '5px',
-                    padding: '10px',
-                    backgroundColor: '#fff'
-                  }}>
+                  <div 
+                    data-trip-id={trip.id}
+                    style={{ 
+                      minHeight: '100px',
+                      border: '2px dashed #6c757d',
+                      borderRadius: '5px',
+                      padding: '10px',
+                      backgroundColor: '#fff'
+                    }}>
                     {trip.items.length === 0 ? (
                       <p style={{ 
                         textAlign: 'center', 
@@ -585,7 +656,7 @@ export default function PackingManagePage() {
                               style={{
                                 padding: '4px 8px',
                                 backgroundColor: '#dc3545',
-                                color: 'white',
+                                color: '#f8f9fa',
                                 border: 'none',
                                 borderRadius: '3px',
                                 cursor: 'pointer',
@@ -621,7 +692,7 @@ export default function PackingManagePage() {
           zIndex: 1000
         }}>
           <form onSubmit={handleSubmit} style={{
-            backgroundColor: 'white',
+            backgroundColor: '#f8f9fa',
             padding: '30px',
             borderRadius: '8px',
             width: '500px',
@@ -681,7 +752,7 @@ export default function PackingManagePage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#007bff',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer'
@@ -695,7 +766,7 @@ export default function PackingManagePage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#6c757d',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer'

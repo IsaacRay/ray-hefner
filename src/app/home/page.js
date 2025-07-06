@@ -18,7 +18,7 @@ export default function Home() {
     border: '2px solid #007bff',
     borderRadius: '8px',
     backgroundColor: '#007bff',
-    color: 'white',
+    color: '#f8f9fa',
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'all 0.2s ease',

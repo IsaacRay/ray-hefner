@@ -43,7 +43,7 @@
 
 .refreshButton {
   background: #007bff;
-  color: white;
+  color: #f8f9fa;
 }
 
 .refreshButton:hover:not(:disabled) {
@@ -52,7 +52,7 @@
 
 .pollingOn {
   background: #28a745;
-  color: white;
+  color: #f8f9fa;
 }
 
 .pollingOn:hover {
@@ -61,7 +61,7 @@
 
 .pollingOff {
   background: #dc3545;
-  color: white;
+  color: #f8f9fa;
 }
 
 .pollingOff:hover {
@@ -102,7 +102,7 @@
   border: 2px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
-  background: white;
+  background: #f8f9fa;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -175,7 +175,7 @@
   padding: 15px 10px;
   border-right: 1px solid #ddd;
   min-height: 120px;
-  background: white;
+  background: #f8f9fa;
   position: relative;
 }
 

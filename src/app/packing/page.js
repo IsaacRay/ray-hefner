@@ -227,7 +227,7 @@ export default function PackingPage() {
         <Link href="/packing/manage" style={{
           padding: '10px 15px',
           backgroundColor: '#007bff',
-          color: 'white',
+          color: '#f8f9fa',
           textDecoration: 'none',
           borderRadius: '5px',
           fontSize: '0.9em'
@@ -242,7 +242,7 @@ export default function PackingPage() {
           style={{
             padding: '10px 15px',
             backgroundColor: '#28a745',
-            color: 'white',
+            color: '#f8f9fa',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer',
@@ -257,7 +257,7 @@ export default function PackingPage() {
             style={{
               padding: '10px 15px',
               backgroundColor: '#6c757d',
-              color: 'white',
+              color: '#f8f9fa',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
@@ -272,7 +272,7 @@ export default function PackingPage() {
           style={{
             padding: '10px 15px',
             backgroundColor: '#28a745',
-            color: 'white',
+            color: '#f8f9fa',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer',
@@ -287,7 +287,7 @@ export default function PackingPage() {
             style={{
               padding: '10px 15px',
               backgroundColor: '#dc3545',
-              color: 'white',
+              color: '#f8f9fa',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
@@ -318,7 +318,7 @@ export default function PackingPage() {
                 style={{
                   padding: '10px 15px',
                   backgroundColor: '#007bff',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -341,7 +341,7 @@ export default function PackingPage() {
                       style={{
                         padding: '10px 15px',
                         backgroundColor: '#28a745',
-                        color: 'white',
+                        color: '#f8f9fa',
                         border: 'none',
                         borderRadius: '5px',
                         cursor: 'pointer',
@@ -355,7 +355,7 @@ export default function PackingPage() {
                       style={{
                         padding: '8px 10px',
                         backgroundColor: '#dc3545',
-                        color: 'white',
+                        color: '#f8f9fa',
                         border: 'none',
                         borderRadius: '3px',
                         cursor: 'pointer',
@@ -401,7 +401,7 @@ export default function PackingPage() {
                 style={{
                   padding: '10px 15px',
                   backgroundColor: '#007bff',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -415,7 +415,7 @@ export default function PackingPage() {
                 style={{
                   padding: '10px 15px',
                   backgroundColor: '#6c757d',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -457,7 +457,7 @@ export default function PackingPage() {
                 style={{
                   padding: '10px 15px',
                   backgroundColor: '#007bff',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -471,7 +471,7 @@ export default function PackingPage() {
                 style={{
                   padding: '10px 15px',
                   backgroundColor: '#6c757d',
-                  color: 'white',
+                  color: '#f8f9fa',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -497,7 +497,7 @@ export default function PackingPage() {
           <div style={{
             width: '100%',
             height: '10px',
-            backgroundColor: '#fff',
+            backgroundColor: '#e9ecef',
             borderRadius: '5px',
             marginTop: '10px',
             overflow: 'hidden'
