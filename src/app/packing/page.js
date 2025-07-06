@@ -171,20 +171,47 @@ export default function PackingPage() {
   const addAdHocItem = async () => {
     if (!newItemName.trim()) return;
     
-    const newItem = {
-      id: Date.now(),
-      name: newItemName,
-      packed: false,
-      quantity: 1,
-      isAdHoc: true
-    };
-    
-    const updatedItems = [...items, newItem];
-    setItems(updatedItems);
-    setNewItemName('');
-    setShowAddItem(false);
-    if (pinnedTrip) {
-      updatePinnedTrip(updatedItems);
+    try {
+      // Always save the item to the database permanently
+      const templates = [];
+      
+      // If there's a pinned trip and a selected template that matches available templates, add template association
+      if (pinnedTrip && selectedTemplate && availableTemplates.includes(selectedTemplate)) {
+        templates.push(selectedTemplate);
+      }
+      
+      const response = await fetch('/api/packing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newItemName,
+          templates: templates
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save item');
+      }
+
+      const data = await response.json();
+      const newItem = {
+        ...data,
+        quantity: 1,
+        packed: false
+      };
+      
+      const updatedItems = [...items, newItem];
+      setItems(updatedItems);
+      setNewItemName('');
+      setShowAddItem(false);
+      
+      if (pinnedTrip) {
+        updatePinnedTrip(updatedItems);
+      }
+    } catch (err) {
+      setError(err.message);
     }
   };
 
