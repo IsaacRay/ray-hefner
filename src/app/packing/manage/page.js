@@ -917,7 +917,7 @@ export default function PackingManagePage() {
                     opacity: isDragging && (draggedTemplate?.name === template && draggedTemplate?.type === 'standard') ? 0.5 : 1
                   }}
                 >
-                  <span style={{ fontWeight: 'bold' }}>{template.replace('_', ' ')}</span>
+                  <span style={{ fontWeight: 'bold', "color":"black" }}>{template.replace('_', ' ')}</span>
                   <span style={{ fontSize: '0.9em', color: '#000' }}>📦 Template</span>
                 </div>
               ))}
@@ -958,7 +958,7 @@ export default function PackingManagePage() {
                         flex: 1
                       }}
                     >
-                      <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
+                      <span style={{ fontWeight: 'bold', "color":"black" }}>{trip.name}</span>
                       <span style={{ fontSize: '0.9em', color: '#000' }}>💾 Saved ({trip.items.length} items)</span>
                     </div>
                     <button
@@ -1008,7 +1008,7 @@ export default function PackingManagePage() {
                     opacity: isDragging && draggedItem?.id === item.id ? 0.5 : 1
                   }}
                 >
-                  <span style={{ fontWeight: 'bold', "color":"darkgray" }}>{item.name}</span>
+                  <span style={{ fontWeight: 'bold', "color":"black" }}>{item.name}</span>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                       onClick={() => handleEdit(item)}
@@ -1208,7 +1208,7 @@ export default function PackingManagePage() {
                               borderRadius: '4px'
                             }}
                           >
-                            <span style={{"color":"darkgrey"}}>{item.name}</span>
+                            <span style={{"color":"black"}}>{item.name}</span>
                             <button
                               onClick={() => removeItemFromTrip(trip.id, item.id)}
                               style={{
