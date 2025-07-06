@@ -38,14 +38,12 @@ export async function GET(req) {
 
 export async function PUT(req) {
   try {
-    const { id, packed, name, description, category, templates } = await req.json();
+    const { id, packed, name, templates } = await req.json();
     
     const updateData = { updated_at: new Date().toISOString() };
     
     if (packed !== undefined) updateData.packed = packed;
     if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (category !== undefined) updateData.category = category;
     if (templates !== undefined) updateData.templates = templates;
     
     const { data, error } = await supabase
@@ -69,11 +67,11 @@ export async function PUT(req) {
 
 export async function POST(req) {
   try {
-    const { name, description, category, templates } = await req.json();
+    const { name, templates } = await req.json();
     
     const { data, error } = await supabase
       .from('packing_items')
-      .insert([{ name, description, category, templates: templates || [], packed: false }])
+      .insert([{ name, templates: templates || [], packed: false }])
       .select();
 
     if (error) throw error;

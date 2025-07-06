@@ -11,8 +11,7 @@ export default function PackingPage() {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItemName, setNewItemName] = useState('');
-  const [newItemDescription, setNewItemDescription] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState('');
+  // Removed description and category fields
   const [tripName, setTripName] = useState('');
   const [showSaveTrip, setShowSaveTrip] = useState(false);
   const [savedTrips, setSavedTrips] = useState([]);
@@ -20,8 +19,8 @@ export default function PackingPage() {
   const availableTemplates = ['camping', 'beach', 'holidays', 'business', 'road_trip', 'international'];
 
   useEffect(() => {
-    fetchPackingItems();
     fetchSavedTrips();
+    // Start with empty list instead of loading all items
   }, []);
 
   const fetchPackingItems = async () => {
@@ -123,8 +122,6 @@ export default function PackingPage() {
     const newItem = {
       id: Date.now(),
       name: newItemName,
-      description: newItemDescription,
-      category: newItemCategory,
       packed: false,
       quantity: 1,
       isAdHoc: true
@@ -132,8 +129,6 @@ export default function PackingPage() {
     
     setItems([...items, newItem]);
     setNewItemName('');
-    setNewItemDescription('');
-    setNewItemCategory('');
     setShowAddItem(false);
   };
 
@@ -156,8 +151,6 @@ export default function PackingPage() {
           name: tripName,
           items: items.map(item => ({
             name: item.name,
-            description: item.description,
-            category: item.category,
             quantity: item.quantity || 1
           }))
         }),
@@ -248,20 +241,6 @@ export default function PackingPage() {
           }}
         >
           Load Template
-        </button>
-        <button
-          onClick={() => fetchPackingItems()}
-          style={{
-            padding: '10px 15px',
-            backgroundColor: '#17a2b8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '0.9em'
-          }}
-        >
-          Load All Items
         </button>
         {totalCount > 0 && (
           <button
@@ -407,30 +386,6 @@ export default function PackingPage() {
                 fontSize: '0.9em'
               }}
             />
-            <input
-              type="text"
-              placeholder="Description (optional)"
-              value={newItemDescription}
-              onChange={(e) => setNewItemDescription(e.target.value)}
-              style={{
-                padding: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ddd',
-                fontSize: '0.9em'
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Category (optional)"
-              value={newItemCategory}
-              onChange={(e) => setNewItemCategory(e.target.value)}
-              style={{
-                padding: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ddd',
-                fontSize: '0.9em'
-              }}
-            />
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={addAdHocItem}
@@ -549,9 +504,10 @@ export default function PackingPage() {
       )}
       
       {items.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#333' }}>
-          No packing items found.
-        </p>
+        <div style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
+          <h3>Start Your Packing List</h3>
+          <p>Begin with a blank list and add items individually, or load a template to get started.</p>
+        </div>
       ) : (
         <div style={{ 
           display: 'flex', 
@@ -593,24 +549,6 @@ export default function PackingPage() {
                 }}>
                   {item.name}
                 </div>
-                {item.description && (
-                  <div style={{ 
-                    fontSize: '0.9em', 
-                    color: '#555' 
-                  }}>
-                    {item.description}
-                  </div>
-                )}
-                {item.category && (
-                  <div style={{ 
-                    fontSize: '0.8em', 
-                    color: '#007bff',
-                    marginTop: '5px',
-                    fontWeight: '500'
-                  }}>
-                    {item.category}
-                  </div>
-                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
