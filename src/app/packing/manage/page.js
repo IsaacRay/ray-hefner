@@ -1208,7 +1208,7 @@ export default function PackingManagePage() {
                               borderRadius: '4px'
                             }}
                           >
-                            <span>{item.name}</span>
+                            <span style={{"color":"darkgrey"}}>{item.name}</span>
                             <button
                               onClick={() => removeItemFromTrip(trip.id, item.id)}
                               style={{
