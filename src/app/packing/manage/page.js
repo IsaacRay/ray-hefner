@@ -450,7 +450,7 @@ export default function PackingManagePage() {
                   }}
                 >
                   <span style={{ fontWeight: 'bold' }}>{template.replace('_', ' ')}</span>
-                  <span style={{ fontSize: '0.9em', color: '#666' }}>📦 Template</span>
+                  <span style={{ fontSize: '0.9em', color: '#333' }}>📦 Template</span>
                 </div>
               ))}
             </div>
@@ -483,7 +483,7 @@ export default function PackingManagePage() {
                     }}
                   >
                     <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
-                    <span style={{ fontSize: '0.9em', color: '#666' }}>💾 Saved ({trip.items.length} items)</span>
+                    <span style={{ fontSize: '0.9em', color: '#333' }}>💾 Saved ({trip.items.length} items)</span>
                   </div>
                 ))}
               </div>
@@ -559,7 +559,7 @@ export default function PackingManagePage() {
           {activeTrips.length === 0 ? (
             <div style={{ 
               textAlign: 'center', 
-              color: '#666', 
+              color: '#333', 
               padding: '40px',
               border: '2px dashed #ccc',
               borderRadius: '8px'
@@ -630,7 +630,7 @@ export default function PackingManagePage() {
                     {trip.items.length === 0 ? (
                       <p style={{ 
                         textAlign: 'center', 
-                        color: '#666',
+                        color: '#333',
                         margin: '40px 0',
                         fontSize: '0.9em'
                       }}>
