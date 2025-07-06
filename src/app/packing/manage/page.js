@@ -777,7 +777,7 @@ export default function PackingManagePage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ 
           fontSize: '2em', 
-          color: '#333',
+          color: '#000',
           margin: 0
         }}>
           Trip Planning & Item Management
@@ -813,7 +813,7 @@ export default function PackingManagePage() {
         
         {/* Left Column - Items & Templates */}
         <div>
-          <h2 style={{ fontSize: '1.5em', marginBottom: '20px', color: '#333' }}>Items & Templates</h2>
+          <h2 style={{ fontSize: '1.5em', marginBottom: '20px', color: '#000' }}>Items & Templates</h2>
           
           {/* Trip Creation */}
           <div style={{ marginBottom: '20px' }}>
@@ -894,7 +894,7 @@ export default function PackingManagePage() {
 
           {/* Standard Templates */}
           <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#333' }}>Standard Templates</h3>
+            <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#000' }}>Standard Templates</h3>
             <div style={{ display: 'grid', gap: '10px' }}>
               {availableTemplates.map(template => (
                 <div
@@ -918,7 +918,7 @@ export default function PackingManagePage() {
                   }}
                 >
                   <span style={{ fontWeight: 'bold' }}>{template.replace('_', ' ')}</span>
-                  <span style={{ fontSize: '0.9em', color: '#333' }}>📦 Template</span>
+                  <span style={{ fontSize: '0.9em', color: '#000' }}>📦 Template</span>
                 </div>
               ))}
             </div>
@@ -927,7 +927,7 @@ export default function PackingManagePage() {
           {/* Saved Trips */}
           {savedTrips.length > 0 && (
             <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#333' }}>Saved Trips</h3>
+              <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#000' }}>Saved Trips</h3>
               <div style={{ display: 'grid', gap: '10px' }}>
                 {savedTrips.map(trip => (
                   <div
@@ -959,7 +959,7 @@ export default function PackingManagePage() {
                       }}
                     >
                       <span style={{ fontWeight: 'bold' }}>{trip.name}</span>
-                      <span style={{ fontSize: '0.9em', color: '#333' }}>💾 Saved ({trip.items.length} items)</span>
+                      <span style={{ fontSize: '0.9em', color: '#000' }}>💾 Saved ({trip.items.length} items)</span>
                     </div>
                     <button
                       onClick={() => deleteSavedTrip(trip.id, trip.name)}
@@ -985,7 +985,7 @@ export default function PackingManagePage() {
 
           {/* Individual Items */}
           <div>
-            <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#333' }}>Individual Items</h3>
+            <h3 style={{ fontSize: '1.2em', marginBottom: '15px', color: '#000' }}>Individual Items</h3>
             <div style={{ display: 'grid', gap: '10px' }}>
               {items.map((item) => (
                 <div
@@ -1047,7 +1047,7 @@ export default function PackingManagePage() {
 
         {/* Right Column - Active Trips */}
         <div>
-          <h2 style={{ fontSize: '1.5em', marginBottom: '20px', color: '#333' }}>Active Trips</h2>
+          <h2 style={{ fontSize: '1.5em', marginBottom: '20px', color: '#000' }}>Active Trips</h2>
           
           {activeTrips.length === 0 ? (
             <div 
@@ -1056,7 +1056,7 @@ export default function PackingManagePage() {
               onDrop={handleDropToActiveTrips}
               style={{ 
                 textAlign: 'center', 
-                color: '#333', 
+                color: '#000', 
                 padding: '40px',
                 border: isDragging && draggedSavedTrip ? '2px dashed #28a745' : '2px dashed #ccc',
                 borderRadius: '8px',
@@ -1066,7 +1066,7 @@ export default function PackingManagePage() {
             >
               <h3>No Active Trips</h3>
               <p>Create a new trip to start planning!</p>
-              <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+              <p style={{ fontSize: '0.9em', color: '#000', marginTop: '10px' }}>
                 💡 Drag a saved trip here to convert it to an active trip and auto-pin it!
               </p>
             </div>
@@ -1079,7 +1079,7 @@ export default function PackingManagePage() {
                 onDrop={handleDropToActiveTrips}
                 style={{ 
                   textAlign: 'center', 
-                  color: '#333', 
+                  color: '#000', 
                   padding: '20px',
                   border: isDragging && draggedSavedTrip ? '2px dashed #28a745' : '2px dashed #ccc',
                   borderRadius: '8px',
@@ -1088,7 +1088,7 @@ export default function PackingManagePage() {
                   fontSize: '0.9em'
                 }}
               >
-                <span style={{ color: '#666' }}>
+                <span style={{ color: '#000' }}>
                   💡 Drag a saved trip here to create a new active trip and auto-pin it!
                 </span>
               </div>
@@ -1110,7 +1110,7 @@ export default function PackingManagePage() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <h3 style={{ margin: 0, color: '#333' }}>{trip.name}</h3>
+                      <h3 style={{ margin: 0, color: '#000' }}>{trip.name}</h3>
                       {trip.isPinned && (
                         <span style={{ 
                           fontSize: '0.8em', 
@@ -1188,7 +1188,7 @@ export default function PackingManagePage() {
                     {trip.items.length === 0 ? (
                       <p style={{ 
                         textAlign: 'center', 
-                        color: '#333',
+                        color: '#000',
                         margin: '40px 0',
                         fontSize: '0.9em'
                       }}>
@@ -1256,11 +1256,11 @@ export default function PackingManagePage() {
             width: '500px',
             maxWidth: '90vw'
           }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#000' }}>
               {editingItem ? 'Edit Item' : 'Add New Item'}
             </h3>
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#000' }}>
                 Name *
               </label>
               <input
@@ -1278,12 +1278,12 @@ export default function PackingManagePage() {
               />
             </div>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#000' }}>
                 Trip Templates
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {availableTemplates.map(template => (
-                  <label key={template} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <label key={template} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#000' }}>
                     <input
                       type="checkbox"
                       checked={formData.templates.includes(template)}
@@ -1293,7 +1293,7 @@ export default function PackingManagePage() {
                     <span style={{ 
                       padding: '5px 10px',
                       backgroundColor: formData.templates.includes(template) ? '#007bff' : '#f8f9fa',
-                      color: formData.templates.includes(template) ? 'white' : '#333',
+                      color: formData.templates.includes(template) ? 'white' : '#000',
                       borderRadius: '15px',
                       fontSize: '0.9em',
                       border: '1px solid #dee2e6'
