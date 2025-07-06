@@ -295,8 +295,8 @@ export default function PackingPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>📌 Active Trip:</span>
-              <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold', "color":"black" }}>📌 Active Trip:</span>
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold', "color":"black" }}>
                 {pinnedTrip.name}
               </span>
             </div>
